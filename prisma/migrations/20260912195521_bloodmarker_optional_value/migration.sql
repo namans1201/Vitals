@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "BloodMarker" ALTER COLUMN "value" DROP NOT NULL,
+ALTER COLUMN "unit" DROP NOT NULL;

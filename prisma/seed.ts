@@ -4,12 +4,10 @@
  * Sources: 01-plan/02-full-programme.md (exercise tables, nutrition plan),
  * 01-plan/03-exercise-rationale.md (the "why" behind each swap).
  *
- * NOTE on session templates (upper_a/lower_a/upper_b/lower_b/full_body):
- * §10 asks for these to be seeded, but the §4 schema has no model to hold a
- * reusable, date-less template — Workout/WorkoutSet are always tied to a
- * concrete DailyLog date. Deferred to Phase 1 as a static domain constant
- * (src/domain/sessionTemplates.ts) rather than inventing a new Prisma model
- * here. Flagged to Naman in the phase-0 summary.
+ * Session templates (upper_a/lower_a/upper_b/lower_b/full_body) live in
+ * src/domain/sessionTemplates.ts as a static constant, not as seeded rows —
+ * the §4 schema has no model for a reusable, date-less template, and §5.8
+ * Settings never asks for session templates to be editable in the UI.
  */
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
@@ -506,11 +504,12 @@ const SUPPLEMENTS = [
 const BLOOD_MARKERS: {
   panel: string;
   marker: string;
-  value: number;
-  unit: string;
+  value: number | null;
+  unit: string | null;
   refLow: number | null;
   refHigh: number | null;
-  flag: string;
+  flag: string | null;
+  note?: string;
 }[] = [
   { panel: "CBC", marker: "Haemoglobin", value: 14.7, unit: "g/dL", refLow: 13.0, refHigh: 17.0, flag: "normal" },
   { panel: "CBC", marker: "MCV", value: 82.8, unit: "fL", refLow: 83, refHigh: 101, flag: "low" },
@@ -536,6 +535,17 @@ const BLOOD_MARKERS: {
   { panel: "Iron", marker: "Serum iron", value: 133, unit: "µg/dL", refLow: 65, refHigh: 175, flag: "normal" },
   { panel: "Iron", marker: "TIBC", value: 366, unit: "µg/dL", refLow: 250, refHigh: 460, flag: "normal" },
   { panel: "Iron", marker: "Transferrin saturation", value: 36.34, unit: "%", refLow: 20, refHigh: 50, flag: "normal" },
+  {
+    panel: "Iron",
+    marker: "Ferritin",
+    value: null,
+    unit: "ng/mL",
+    refLow: 30,
+    refHigh: 400,
+    flag: null,
+    note:
+      "Not measured on the Feb 2026 panel — the highest-value missing test. Low iron stores would directly cap running performance, and red cells were already small (MCV 82.8, MCH 26.6). Ask for this alongside 25-OH vitamin D, calcium, B12, and homocysteine on the next blood draw.",
+  },
 ];
 
 const BLOOD_TEST_DATE = new Date("2026-02-06T00:00:00.000Z");
@@ -702,17 +712,20 @@ async function main() {
   }
   console.log(`Seeded ${SUPPLEMENTS.length} supplements`);
 
-  const existingPanel = await prisma.bloodMarker.findFirst({
+  const existingMarkers = await prisma.bloodMarker.findMany({
     where: { testDate: BLOOD_TEST_DATE },
+    select: { marker: true },
   });
-  if (!existingPanel) {
+  const existingMarkerNames = new Set(existingMarkers.map((m) => m.marker));
+  const missingMarkers = BLOOD_MARKERS.filter((m) => !existingMarkerNames.has(m.marker));
+  if (missingMarkers.length > 0) {
     await prisma.bloodMarker.createMany({
-      data: BLOOD_MARKERS.map((m) => ({ ...m, testDate: BLOOD_TEST_DATE })),
+      data: missingMarkers.map((m) => ({ ...m, testDate: BLOOD_TEST_DATE })),
     });
-    console.log(`Seeded ${BLOOD_MARKERS.length} blood markers for ${BLOOD_TEST_DATE.toDateString()}`);
-  } else {
-    console.log("Blood panel for 2026-02-06 already seeded, skipping");
   }
+  console.log(
+    `Seeded ${missingMarkers.length} new blood markers for ${BLOOD_TEST_DATE.toDateString()} (${existingMarkerNames.size} already present)`,
+  );
 
   for (const preset of MEAL_PRESETS) {
     const existing = await prisma.mealPreset.findFirst({

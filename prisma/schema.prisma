@@ -196,8 +196,8 @@ model BloodMarker {
   testDate DateTime @db.Date
   panel    String // CBC | Lipid | Liver | Kidney | Thyroid | Vitamins | Iron | Diabetes
   marker   String
-  value    Float
-  unit     String
+  value    Float? // null means "ordered/relevant but not measured" — see `note`
+  unit     String?
   refLow   Float?
   refHigh  Float?
   flag     String? // low | high | normal | borderline
