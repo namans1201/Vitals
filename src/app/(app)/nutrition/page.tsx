@@ -1,10 +1,30 @@
-export default function NutritionPage() {
+import { prisma } from "@/lib/db";
+import { parseDateParam, todayIso } from "@/lib/date";
+import { NutritionClient } from "./NutritionClient";
+
+// Reads live DB state on every request — must never be statically prerendered.
+export const dynamic = "force-dynamic";
+
+export default async function NutritionPage() {
+  const dateStr = todayIso();
+  const date = parseDateParam(dateStr);
+
+  const [profile, meals, presets] = await Promise.all([
+    prisma.profile.findUnique({ where: { id: 1 } }),
+    prisma.meal.findMany({ where: { date }, orderBy: { time: "asc" } }),
+    prisma.mealPreset.findMany({ orderBy: { sortOrder: "asc" } }),
+  ]);
+
+  const mealPhase = profile?.mealPhase ?? "sep_eggs";
+  const visiblePresets = presets.filter((p) => p.phase === "all" || p.phase === mealPhase);
+
   return (
-    <div className="rounded-xl border border-line bg-panel p-4">
-      <h1 className="text-base font-medium text-ink">Nutrition</h1>
-      <p className="mt-1 text-sm text-dim">
-        Protein/calorie progress and meal presets land here in Phase 1.
-      </p>
-    </div>
+    <NutritionClient
+      date={dateStr}
+      proteinTargetG={profile?.proteinTargetG ?? 145}
+      calorieTargetKcal={profile?.calorieTargetKcal ?? 2450}
+      meals={meals}
+      presets={visiblePresets}
+    />
   );
 }

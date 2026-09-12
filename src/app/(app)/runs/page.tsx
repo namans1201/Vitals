@@ -1,10 +1,33 @@
-export default function RunsPage() {
+import { differenceInYears } from "date-fns";
+import { prisma } from "@/lib/db";
+import { todayIso } from "@/lib/date";
+import { RunsClient } from "./RunsClient";
+
+// Reads live DB state on every request — must never be statically prerendered.
+export const dynamic = "force-dynamic";
+
+const HISTORY_LIMIT = 30;
+
+export default async function RunsPage() {
+  const [profile, runs, restingHrDays] = await Promise.all([
+    prisma.profile.findUnique({ where: { id: 1 } }),
+    prisma.run.findMany({ orderBy: { date: "desc" }, take: HISTORY_LIMIT }),
+    prisma.dailyLog.findMany({
+      where: { restingHr: { not: null } },
+      orderBy: { date: "desc" },
+      take: 60,
+      select: { date: true, restingHr: true },
+    }),
+  ]);
+
+  const age = profile ? differenceInYears(new Date(), profile.dateOfBirth) : 24;
+
   return (
-    <div className="rounded-xl border border-line bg-panel p-4">
-      <h1 className="text-base font-medium text-ink">Runs</h1>
-      <p className="mt-1 text-sm text-dim">
-        Pace, HR zones, and the zone-distribution bar land here in Phase 1.
-      </p>
-    </div>
+    <RunsClient
+      date={todayIso()}
+      age={age}
+      runs={runs}
+      restingHrSeries={[...restingHrDays].reverse()}
+    />
   );
 }

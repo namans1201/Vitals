@@ -1,10 +1,57 @@
-export default function WorkoutPage() {
+import { prisma } from "@/lib/db";
+import { parseDateParam, todayIso } from "@/lib/date";
+import { planForWeekday } from "@/domain/sessionTemplates";
+import { getLastTimeForExercise, getOrCreateWorkoutForDate } from "@/lib/workouts";
+import { progression } from "@/domain/progression";
+import { WorkoutClient } from "./WorkoutClient";
+
+// Reads/writes live DB state on every request — must never be statically prerendered.
+export const dynamic = "force-dynamic";
+
+export default async function WorkoutPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
+  const { date: dateParam } = await searchParams;
+  const dateStr = dateParam ?? todayIso();
+  const date = parseDateParam(dateStr);
+  const plan = planForWeekday(date.getUTCDay());
+
+  const workout = await getOrCreateWorkoutForDate(date, plan.activeSessionType);
+
+  const exerciseGroups = [];
+  if (workout) {
+    const seenExerciseIds = new Set<number>();
+    for (const set of workout.sets) {
+      if (seenExerciseIds.has(set.exerciseId)) continue;
+      seenExerciseIds.add(set.exerciseId);
+
+      const sets = workout.sets.filter((s) => s.exerciseId === set.exerciseId);
+      const exercise = set.exercise;
+      const lastTime = await getLastTimeForExercise(set.exerciseId, date);
+      const loggedLastSets = (lastTime?.sets ?? []).filter(
+        (s): s is { reps: number; weightKg: number | null; rir: number | null } => s.reps !== null,
+      );
+      const progressionResult = progression({
+        sets: loggedLastSets.map((s) => ({ reps: s.reps, rir: s.rir })),
+        repsMin: exercise.defaultRepsMin,
+        repsMax: exercise.defaultRepsMax,
+      });
+
+      exerciseGroups.push({ exercise, sets, lastTime, progression: progressionResult });
+    }
+  }
+
+  const allExercises = await prisma.exercise.findMany({ orderBy: { name: "asc" } });
+
   return (
-    <div className="rounded-xl border border-line bg-panel p-4">
-      <h1 className="text-base font-medium text-ink">Workout</h1>
-      <p className="mt-1 text-sm text-dim">
-        Session logging, set ticks, and progression hints land here in Phase 1.
-      </p>
-    </div>
+    <WorkoutClient
+      date={dateStr}
+      plan={plan}
+      workout={workout}
+      exerciseGroups={exerciseGroups}
+      allExercises={allExercises}
+    />
   );
 }

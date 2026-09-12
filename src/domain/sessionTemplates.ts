@@ -131,3 +131,22 @@ export type ActiveProgram = "four_day_split" | "full_body_reset";
  * full_body has happened three Saturdays in a row (01-plan/01-current-plan.md).
  */
 export const ACTIVE_PROGRAM: ActiveProgram = "full_body_reset";
+
+export type DayPlan = {
+  /** What the four-day split assigns to this weekday, shown as a reference
+   * even while `full_body_reset` is active — Naman's call at Phase 1 kickoff. */
+  referenceSessionType: SessionType | null;
+  /** What's actually planned given ACTIVE_PROGRAM — null means no lifting
+   * session is planned (during the reset, that's every day but Saturday). */
+  activeSessionType: SessionType | null;
+  /** Sunday — nudge to log weekly weight/waist/BIA (01-plan/01-current-plan.md). */
+  isMeasurementDay: boolean;
+};
+
+/** JS weekday convention: Sunday=0 … Saturday=6. */
+export function planForWeekday(weekday: number, activeProgram: ActiveProgram = ACTIVE_PROGRAM): DayPlan {
+  const referenceSessionType = WEEKDAY_SESSION_PLAN[weekday] ?? null;
+  const activeSessionType: SessionType | null =
+    activeProgram === "four_day_split" ? referenceSessionType : weekday === 6 ? "full_body" : null;
+  return { referenceSessionType, activeSessionType, isMeasurementDay: weekday === 0 };
+}

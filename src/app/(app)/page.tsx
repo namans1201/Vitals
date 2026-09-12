@@ -1,10 +1,31 @@
-export default function TodayPage() {
+import { getDaySnapshot } from "@/lib/days";
+import { formatTimeInTz, parseDateParam, todayIso } from "@/lib/date";
+import { planForWeekday } from "@/domain/sessionTemplates";
+import { TodayClient } from "./TodayClient";
+
+// Reads live DB state on every request — must never be statically prerendered.
+export const dynamic = "force-dynamic";
+
+export default async function TodayPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
+  const { date: dateParam } = await searchParams;
+  const dateStr = dateParam ?? todayIso();
+  const date = parseDateParam(dateStr);
+  const snapshot = await getDaySnapshot(date);
+  const plan = planForWeekday(date.getUTCDay());
+
   return (
-    <div className="rounded-xl border border-line bg-panel p-4">
-      <h1 className="text-base font-medium text-ink">Today</h1>
-      <p className="mt-1 text-sm text-dim">
-        Checklist, water, and the watch summary land here in Phase 1.
-      </p>
-    </div>
+    <TodayClient
+      date={dateStr}
+      snapshot={{
+        ...snapshot,
+        sleepHours: snapshot.sleepMinutes != null ? snapshot.sleepMinutes / 60 : null,
+        bedtimeLocal: snapshot.sleepStart ? formatTimeInTz(snapshot.sleepStart) : null,
+      }}
+      plan={plan}
+    />
   );
 }
