@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vitals
+      POSTGRES_PASSWORD: vitals
+      POSTGRES_DB: vitals
+    ports:
+      # Host port 5433, not 5432 — a native Postgres install may already be
+      # using 5432 on this machine.
+      - "5433:5432"
+    volumes:
+      - vitals_pg_data:/var/lib/postgresql/data
+
+volumes:
+  vitals_pg_data:

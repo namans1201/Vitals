@@ -1,0 +1,218 @@
+// Vitals — schema per BUILD_SPEC.md §4.
+// Dates are @db.Date for day-keyed rows; timestamps are UTC (converted to
+// Asia/Kolkata in application code before any calendar-date decision — see §11).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Profile {
+  id                Int      @id @default(1)
+  name              String   @default("Naman")
+  dateOfBirth       DateTime @db.Date
+  heightCm          Float    @default(172.7)
+  sex               String   @default("male")
+  timezone          String   @default("Asia/Kolkata")
+  // targets — editable in Settings, never hardcoded in components
+  proteinTargetG    Int      @default(145)
+  calorieTargetKcal Int      @default(2450)
+  waterTargetMl     Int      @default(3500)
+  proteinPerKg      Float    @default(2.1)
+  updatedAt         DateTime @updatedAt
+}
+
+model DailyLog {
+  date             DateTime @id @db.Date
+  // ---- manual ----
+  weightKg         Float?
+  waistCm          Float?
+  bodyFatPct       Float?
+  skeletalMuscleKg Float?
+  armCm            Float?
+  chestCm          Float?
+  thighCm          Float?
+  maxPullups       Int?
+  maxPushups       Int?
+  notes            String?
+  waterMl          Int      @default(0)
+  // ---- from the watch ----
+  restingHr        Int?
+  sleepMinutes     Int?
+  sleepStart       DateTime?
+  sleepEnd         DateTime?
+  deepMin          Int?
+  remMin           Int?
+  lightMin         Int?
+  awakeMin         Int?
+  steps            Int?
+  activeKcal       Int?
+  hrvMs            Float?
+  spo2Pct          Float?
+  skinTempC        Float?
+  energyScore      Int?
+  // ---- provenance ----
+  source           String    @default("manual") // manual | healthconnect | merged
+  importedAt       DateTime?
+
+  meals       Meal[]
+  workouts    Workout[]
+  runs        Run[]
+  checklist   ChecklistLog[]
+  supplements SupplementLog[]
+
+  @@index([date])
+}
+
+model Exercise {
+  id             Int          @id @default(autoincrement())
+  name           String       @unique
+  muscleGroup    String // chest|back_vertical|back_horizontal|front_delt|side_delt|rear_delt|biceps|triceps|quads|hams_hinge|hams_knee|glutes|calves|core_antiext|core_antilat|core_antirot
+  equipment      String // bodyweight|dumbbell|band|pullup_bar|rope|none
+  isUnilateral   Boolean      @default(false)
+  defaultSets    Int          @default(3)
+  defaultRepsMin Int          @default(8)
+  defaultRepsMax Int          @default(15)
+  cues           String?
+  rationale      String? // why this exercise — see 01-plan/03-exercise-rationale.md
+  sets           WorkoutSet[]
+}
+
+model Workout {
+  id          Int      @id @default(autoincrement())
+  date        DateTime @db.Date
+  sessionType String // upper_a | lower_a | upper_b | lower_b | full_body | minimum | custom
+  durationMin Int?
+  notes       String?
+  day         DailyLog @relation(fields: [date], references: [date])
+  sets        WorkoutSet[]
+
+  @@index([date])
+}
+
+model WorkoutSet {
+  id         Int      @id @default(autoincrement())
+  workoutId  Int
+  exerciseId Int
+  setIndex   Int
+  reps       Int?
+  weightKg   Float?
+  rir        Int? // reps in reserve
+  tempo      String? // e.g. "3-1-1-0"
+  completed  Boolean  @default(false)
+  workout    Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exercise   Exercise @relation(fields: [exerciseId], references: [id])
+
+  @@index([workoutId])
+}
+
+model Run {
+  id          Int      @id @default(autoincrement())
+  date        DateTime @db.Date
+  type        String // easy | intervals | long | walk_run | walk | skipping
+  durationSec Int
+  distanceM   Int?
+  avgHr       Int?
+  maxHr       Int?
+  zoneSecJson Json? // {z1,z2,z3,z4,z5} seconds
+  notes       String?
+  source      String   @default("manual")
+  day         DailyLog @relation(fields: [date], references: [date])
+
+  @@index([date])
+}
+
+model Meal {
+  id           Int      @id @default(autoincrement())
+  date         DateTime @db.Date
+  time         String // "13:30"
+  name         String
+  description  String?
+  proteinG     Float    @default(0)
+  caloriesKcal Int      @default(0)
+  day          DailyLog @relation(fields: [date], references: [date])
+
+  @@index([date])
+}
+
+model MealPreset {
+  id           Int     @id @default(autoincrement())
+  time         String
+  name         String
+  description  String?
+  proteinG     Float
+  caloriesKcal Int
+  phase        String  @default("all") // all | aug_dairy | sep_eggs
+  sortOrder    Int     @default(0)
+}
+
+model ChecklistItem {
+  id        Int            @id @default(autoincrement())
+  key       String         @unique
+  label     String
+  priority  Boolean        @default(false) // starred — the ones that matter most
+  active    Boolean        @default(true)
+  sortOrder Int            @default(0)
+  logs      ChecklistLog[]
+}
+
+model ChecklistLog {
+  date    DateTime      @db.Date
+  itemKey String
+  done    Boolean       @default(false)
+  day     DailyLog      @relation(fields: [date], references: [date])
+  item    ChecklistItem @relation(fields: [itemKey], references: [key])
+
+  @@id([date, itemKey])
+}
+
+model Supplement {
+  id     Int             @id @default(autoincrement())
+  name   String
+  dose   String
+  timing String
+  active Boolean         @default(true)
+  status String          @default("active") // active | on_hold | stopped
+  note   String?
+  logs   SupplementLog[]
+}
+
+model SupplementLog {
+  date         DateTime   @db.Date
+  supplementId Int
+  taken        Boolean    @default(false)
+  day          DailyLog   @relation(fields: [date], references: [date])
+  supplement   Supplement @relation(fields: [supplementId], references: [id])
+
+  @@id([date, supplementId])
+}
+
+model BloodMarker {
+  id       Int      @id @default(autoincrement())
+  testDate DateTime @db.Date
+  panel    String // CBC | Lipid | Liver | Kidney | Thyroid | Vitamins | Iron | Diabetes
+  marker   String
+  value    Float
+  unit     String
+  refLow   Float?
+  refHigh  Float?
+  flag     String? // low | high | normal | borderline
+  note     String?
+
+  @@index([testDate, marker])
+}
+
+model HealthImport {
+  id           Int      @id @default(autoincrement())
+  importedAt   DateTime @default(now())
+  sourceFile   String
+  checksum     String   @unique // skip re-importing an identical file
+  status       String // ok | partial | failed
+  rowsIngested Int      @default(0)
+  daysTouched  Int      @default(0)
+  log          String? // what was parsed, what was skipped
+}
