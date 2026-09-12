@@ -6,11 +6,8 @@ const NAV_ITEMS = [
   { href: "/", label: "Today" },
   { href: "/workout", label: "Workout" },
   { href: "/runs", label: "Runs" },
-  { href: "/nutrition", label: "Nutrition" },
-  { href: "/body", label: "Body" },
-  { href: "/insights", label: "Insights" },
-  { href: "/bloods", label: "Bloods" },
-  { href: "/settings", label: "Settings" },
+  { href: "/nutrition", label: "Food" },
+  { href: "/plan", label: "Week" },
 ] as const;
 
 export default function AppLayout({

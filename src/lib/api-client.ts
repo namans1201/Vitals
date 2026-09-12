@@ -18,6 +18,15 @@ export function patchDay(date: string, body: Record<string, unknown>) {
   return request(`/api/days/${date}`, { method: "PATCH", body: JSON.stringify(body) });
 }
 
+export function saveWeekPlan(body: {
+  date: string;
+  runDays: number[];
+  offDays: number[];
+  flexChoice: "run" | "mobility";
+}) {
+  return request("/api/week-plan", { method: "PUT", body: JSON.stringify(body) });
+}
+
 export function createWorkout(body: { date: string; sessionType: string }) {
   return request("/api/workouts", { method: "POST", body: JSON.stringify(body) });
 }

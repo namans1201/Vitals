@@ -441,7 +441,7 @@ const EXERCISES: ExerciseSeed[] = [
 
 const CHECKLIST_ITEMS: { key: string; label: string; priority: boolean }[] = [
   { key: "light", label: "15 min outdoor light within an hour of waking", priority: true },
-  { key: "bed", label: "In bed by target", priority: true },
+  { key: "bed", label: "In bed by 12:30 AM", priority: true },
   { key: "caffeine", label: "No caffeine after 2 PM", priority: true },
   { key: "protein", label: "Hit protein target", priority: false },
   { key: "water", label: "Water target", priority: false },
@@ -663,12 +663,55 @@ const MEAL_PRESETS: {
   },
 ];
 
+// The fridge table from 01-plan/02-full-programme.md §5 — tap to add, set a
+// quantity, protein/calories fill themselves in. No typing, no API calls.
+const FOOD_ITEMS: {
+  name: string;
+  servingLabel: string;
+  proteinG: number;
+  caloriesKcal: number;
+  note?: string;
+}[] = [
+  { name: "Soya chunks (dry)", servingLabel: "30 g", proteinG: 16, caloriesKcal: 105, note: "Best protein-per-rupee in India" },
+  { name: "Whey", servingLabel: "1 scoop", proteinG: 24, caloriesKcal: 120 },
+  { name: "Paneer", servingLabel: "100 g", proteinG: 18, caloriesKcal: 265 },
+  { name: "Tofu (firm)", servingLabel: "100 g", proteinG: 12, caloriesKcal: 145 },
+  { name: "Greek yogurt / hung curd", servingLabel: "150 g", proteinG: 15, caloriesKcal: 100 },
+  { name: "Curd (dahi), toned", servingLabel: "150 g", proteinG: 5, caloriesKcal: 90 },
+  { name: "Milk, toned", servingLabel: "250 ml", proteinG: 8, caloriesKcal: 145 },
+  { name: "Rajma / chole (cooked)", servingLabel: "1 katori (150 g)", proteinG: 8.5, caloriesKcal: 130 },
+  { name: "Dal — toor / moong / chana (cooked)", servingLabel: "1 katori (150 g)", proteinG: 7, caloriesKcal: 110 },
+  { name: "Roasted chana", servingLabel: "30 g", proteinG: 6, caloriesKcal: 120 },
+  { name: "Besan (gram flour)", servingLabel: "60 g", proteinG: 13, caloriesKcal: 215 },
+  { name: "Peanuts", servingLabel: "30 g", proteinG: 8, caloriesKcal: 170 },
+  { name: "Peanut butter", servingLabel: "15 g", proteinG: 4, caloriesKcal: 90 },
+  { name: "Almonds", servingLabel: "15 g (~12)", proteinG: 3, caloriesKcal: 90 },
+  { name: "Sprouted moong", servingLabel: "100 g", proteinG: 7, caloriesKcal: 100 },
+  { name: "Oats", servingLabel: "60 g", proteinG: 8, caloriesKcal: 230 },
+  { name: "Quinoa (cooked)", servingLabel: "1 katori", proteinG: 5, caloriesKcal: 130 },
+  { name: "Roti (wheat)", servingLabel: "1 medium", proteinG: 3, caloriesKcal: 110 },
+  { name: "Rice (cooked)", servingLabel: "1 katori", proteinG: 3, caloriesKcal: 135 },
+  { name: "Egg, whole", servingLabel: "1 egg", proteinG: 6, caloriesKcal: 78 },
+  { name: "Egg white", servingLabel: "1 white", proteinG: 3.6, caloriesKcal: 17 },
+  { name: "Banana", servingLabel: "1 medium", proteinG: 1, caloriesKcal: 105 },
+  { name: "Apple", servingLabel: "1 medium", proteinG: 0.5, caloriesKcal: 95 },
+];
+
 async function main() {
   // Profile — DOB is a placeholder (turns 24 on 1 Feb 2026); correct the
   // exact date in Settings once that screen exists.
+  // These targets come from the plan, so re-seeding resets them to the plan's
+  // values rather than preserving ad-hoc edits.
+  const planTargets = {
+    proteinTargetG: 125,
+    calorieTargetKcal: 2450,
+    waterTargetMl: 3500,
+    mealPhase: "sep_eggs",
+    bedtimeTarget: "00:30",
+  };
   await prisma.profile.upsert({
     where: { id: 1 },
-    update: {},
+    update: planTargets,
     create: {
       id: 1,
       name: "Naman",
@@ -676,10 +719,8 @@ async function main() {
       heightCm: 172.7,
       sex: "male",
       timezone: "Asia/Kolkata",
-      proteinTargetG: 145,
-      calorieTargetKcal: 2450,
-      waterTargetMl: 3500,
       proteinPerKg: 2.1,
+      ...planTargets,
     },
   });
   console.log("Seeded profile");
@@ -738,6 +779,15 @@ async function main() {
     }
   }
   console.log(`Seeded ${MEAL_PRESETS.length} meal presets`);
+
+  for (const [index, food] of FOOD_ITEMS.entries()) {
+    await prisma.foodItem.upsert({
+      where: { name: food.name },
+      update: { ...food, sortOrder: index },
+      create: { ...food, sortOrder: index },
+    });
+  }
+  console.log(`Seeded ${FOOD_ITEMS.length} food items`);
 }
 
 main()

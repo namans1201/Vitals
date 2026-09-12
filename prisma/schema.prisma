@@ -19,13 +19,39 @@ model Profile {
   sex               String   @default("male")
   timezone          String   @default("Asia/Kolkata")
   // targets — editable in Settings, never hardcoded in components
-  proteinTargetG    Int      @default(145)
+  proteinTargetG    Int      @default(125)
   calorieTargetKcal Int      @default(2450)
   waterTargetMl     Int      @default(3500)
   proteinPerKg      Float    @default(2.1)
   // which MealPreset.phase is "current" for quick-add — all | aug_dairy | sep_eggs
   mealPhase         String   @default("sep_eggs")
+  // "HH:mm" in Asia/Kolkata — drives the "in bed by …" checklist item
+  bedtimeTarget     String   @default("00:30")
   updatedAt         DateTime @updatedAt
+}
+
+/// One row per week (keyed by its Monday). Only the choices are stored —
+/// the schedule itself is derived by domain/weekPlan.ts so there's a single
+/// source of truth and it can never drift from the rules.
+model WeekPlan {
+  weekStart  DateTime @id @db.Date
+  runDays    Int[] // 0 = Monday … 6 = Sunday
+  offDays    Int[]
+  flexChoice String   @default("run") // run | mobility
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+/// The Indian-vegetarian protein table from 01-plan/02-full-programme.md §5,
+/// for tap-to-add meal logging with no typing and no API calls.
+model FoodItem {
+  id           Int     @id @default(autoincrement())
+  name         String  @unique
+  servingLabel String
+  proteinG     Float
+  caloriesKcal Int
+  sortOrder    Int     @default(0)
+  note         String?
 }
 
 model DailyLog {

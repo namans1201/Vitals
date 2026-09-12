@@ -1,13 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { DateNav } from "@/components/DateNav";
 import { useToast } from "@/components/Toast";
 import { patchDay } from "@/lib/api-client";
-import { SESSION_LABELS, type DayPlan } from "@/domain/sessionTemplates";
+import { SESSION_LABELS } from "@/domain/sessionTemplates";
+import type { DayAssignment } from "@/domain/weekPlan";
 import type { DaySnapshot } from "@/lib/days";
-
-type TodaySnapshot = DaySnapshot & { sleepHours: number | null; bedtimeLocal: string | null };
 
 const WATER_CELLS = 7;
 const WATER_ML_PER_CELL = 500;
@@ -15,19 +15,26 @@ const WATER_ML_PER_CELL = 500;
 export function TodayClient({
   date,
   snapshot,
-  plan,
+  today,
+  flexChoice,
+  weekProblems,
+  bedtimeTarget,
+  proteinTargetG,
+  proteinSoFar,
 }: {
   date: string;
-  snapshot: TodaySnapshot;
-  plan: DayPlan;
+  snapshot: DaySnapshot;
+  today: DayAssignment | null;
+  flexChoice: string;
+  weekProblems: string[];
+  bedtimeTarget: string;
+  proteinTargetG: number;
+  proteinSoFar: number;
 }) {
   const toast = useToast();
   const [checklist, setChecklist] = useState(snapshot.checklist);
   const [waterMl, setWaterMl] = useState(snapshot.waterMl);
   const [notes, setNotes] = useState(snapshot.notes ?? "");
-  const [restingHr, setRestingHr] = useState(snapshot.restingHr?.toString() ?? "");
-  const [sleepHours, setSleepHours] = useState(snapshot.sleepHours?.toString() ?? "");
-  const [bedtimeLocal, setBedtimeLocal] = useState(snapshot.bedtimeLocal ?? "");
 
   function toggleChecklist(key: string) {
     const next = checklist.map((c) => (c.key === key ? { ...c, done: !c.done } : c));
@@ -52,66 +59,108 @@ export function TodayClient({
       .catch(() => toast("Couldn't save — check your connection"));
   }
 
-  function saveRestingHr() {
-    const value = restingHr.trim() === "" ? null : Number(restingHr);
-    patchDay(date, { restingHr: Number.isNaN(value) ? null : value }).catch(() =>
-      toast("Couldn't save — check your connection"),
-    );
-  }
-
-  function saveSleep() {
-    const hours = sleepHours.trim() === "" ? null : Number(sleepHours);
-    const sleepMinutes = hours == null || Number.isNaN(hours) ? null : Math.round(hours * 60);
-    patchDay(date, { sleepMinutes }).catch(() => toast("Couldn't save — check your connection"));
-  }
-
-  function saveBedtime() {
-    patchDay(date, { bedtimeLocal: bedtimeLocal.trim() === "" ? null : bedtimeLocal }).catch(() =>
-      toast("Couldn't save — check your connection"),
-    );
-  }
-
   const waterCells = Math.round(waterMl / WATER_ML_PER_CELL);
   const priorityItems = checklist.filter((c) => c.priority);
   const otherItems = checklist.filter((c) => !c.priority);
+  const proteinPct = Math.min(100, (proteinSoFar / proteinTargetG) * 100);
 
   return (
     <div className="mx-auto max-w-lg">
       <DateNav date={date} basePath="/" />
 
-      <Card title="Today's plan">
-        {plan.activeSessionType ? (
-          <div className="text-sm text-ink">{SESSION_LABELS[plan.activeSessionType]}</div>
-        ) : (
-          <div className="text-sm text-dim">No lifting session planned — run or rest, your call.</div>
-        )}
-        {plan.referenceSessionType && plan.referenceSessionType !== plan.activeSessionType && (
-          <div className="mt-1 text-xs text-faint">
-            Four-day split reference: {SESSION_LABELS[plan.referenceSessionType]}
-          </div>
-        )}
-        {plan.isMeasurementDay && (
-          <div className="mt-2 rounded-lg border-l-2 border-accent bg-accent/10 px-3 py-2 text-xs text-dim">
-            Weekly measurements — weight, waist, BIA. See the Body tab.
-          </div>
-        )}
-      </Card>
+      {weekProblems.length > 0 && (
+        <div className="mb-3 rounded-lg border-l-2 border-caution bg-caution/5 px-3 py-2.5 text-xs text-dim">
+          This week&apos;s picks don&apos;t make a legal schedule.{" "}
+          <Link href={`/plan?date=${date}`} className="text-accent underline">
+            Fix the week
+          </Link>
+        </div>
+      )}
 
-      <Card title="Checklist">
+      <div className="mb-3 rounded-xl border border-line bg-panel p-4">
+        <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-[.06em] text-faint">
+          Today
+        </h2>
+        {today === null ? (
+          <p className="text-sm text-dim">No plan for this day yet.</p>
+        ) : (
+          <div className="space-y-1.5">
+            {today.run && <PlanRow tone="accent" label="Morning" value="Run — easy, Zone 2" />}
+            {today.lift && (
+              <PlanRow tone="ink" label="Evening" value={SESSION_LABELS[today.lift]} />
+            )}
+            {today.flex && (
+              <PlanRow
+                tone="dim"
+                label="Flexible"
+                value={flexChoice === "mobility" ? "Mobility / core — your call" : "Easy run or walk — your call"}
+              />
+            )}
+            {today.off && <PlanRow tone="dim" label="Rest" value="Strictly off. Nothing to do." />}
+          </div>
+        )}
+        {today?.lift && (
+          <Link
+            href={`/workout?date=${date}`}
+            className="mt-3 flex h-11 items-center justify-center rounded-lg bg-accent text-sm font-medium text-white"
+          >
+            Open the session
+          </Link>
+        )}
+      </div>
+
+      <div className="mb-3 rounded-xl border border-line bg-panel p-4">
+        <div className="mb-2 flex items-baseline justify-between">
+          <h2 className="text-[11px] font-semibold uppercase tracking-[.06em] text-faint">Protein</h2>
+          <Link href="/nutrition" className="text-xs text-accent">
+            Log food
+          </Link>
+        </div>
+        <div className="mb-1 h-1.5 overflow-hidden rounded-full bg-panel-2">
+          <div
+            className={`h-full rounded-full transition-[width] ${proteinPct >= 100 ? "bg-good" : "bg-caution"}`}
+            style={{ width: `${proteinPct}%` }}
+          />
+        </div>
+        <div className="text-lg font-bold text-ink">
+          <span className="tabular-nums">{Math.round(proteinSoFar)}</span>
+          <span className="text-sm font-normal text-faint"> / {proteinTargetG} g</span>
+        </div>
+      </div>
+
+      <div className="mb-3 rounded-xl border border-line bg-panel p-4">
+        <h2 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[.06em] text-faint">
+          Checklist
+        </h2>
         <div className="divide-y divide-line/50">
           {priorityItems.map((item) => (
-            <ChecklistRow key={item.key} item={item} onToggle={toggleChecklist} />
+            <ChecklistRow
+              key={item.key}
+              item={item}
+              bedtimeTarget={bedtimeTarget}
+              onToggle={toggleChecklist}
+            />
           ))}
         </div>
-        {priorityItems.length > 0 && otherItems.length > 0 && <div className="my-2 border-t border-line" />}
+        {priorityItems.length > 0 && otherItems.length > 0 && (
+          <div className="my-2 border-t border-line" />
+        )}
         <div className="divide-y divide-line/50">
           {otherItems.map((item) => (
-            <ChecklistRow key={item.key} item={item} onToggle={toggleChecklist} />
+            <ChecklistRow
+              key={item.key}
+              item={item}
+              bedtimeTarget={bedtimeTarget}
+              onToggle={toggleChecklist}
+            />
           ))}
         </div>
-      </Card>
+      </div>
 
-      <Card title="Water">
+      <div className="mb-3 rounded-xl border border-line bg-panel p-4">
+        <h2 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[.06em] text-faint">
+          Water
+        </h2>
         <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-panel-2">
           <div
             className="h-full rounded-full bg-accent transition-[width]"
@@ -137,96 +186,70 @@ export function TodayClient({
             </button>
           ))}
         </div>
-      </Card>
+      </div>
 
-      <Card title="From the watch (manual for now)">
-        <div className="flex flex-wrap gap-3">
-          <Field label="Resting HR (bpm)">
-            <input
-              type="number"
-              value={restingHr}
-              onChange={(e) => setRestingHr(e.target.value)}
-              onBlur={saveRestingHr}
-              className="h-11 w-full rounded-lg border border-line bg-panel-2 px-3 text-ink outline-none focus:border-accent"
-            />
-          </Field>
-          <Field label="Sleep (hours)">
-            <input
-              type="number"
-              step="0.1"
-              value={sleepHours}
-              onChange={(e) => setSleepHours(e.target.value)}
-              onBlur={saveSleep}
-              className="h-11 w-full rounded-lg border border-line bg-panel-2 px-3 text-ink outline-none focus:border-accent"
-            />
-          </Field>
-          <Field label="Bedtime">
-            <input
-              type="time"
-              value={bedtimeLocal}
-              onChange={(e) => setBedtimeLocal(e.target.value)}
-              onBlur={saveBedtime}
-              className="h-11 w-full rounded-lg border border-line bg-panel-2 px-3 text-ink outline-none focus:border-accent"
-            />
-          </Field>
-        </div>
-      </Card>
-
-      <Card title="Notes">
+      <div className="mb-3 rounded-xl border border-line bg-panel p-4">
+        <h2 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[.06em] text-faint">
+          Notes
+        </h2>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           onBlur={saveNotes}
-          placeholder="Energy, soreness, sleep quality, mood, anything…"
-          rows={3}
+          placeholder="Energy, soreness, anything…"
+          rows={2}
           className="w-full resize-y rounded-lg border border-line bg-panel-2 p-3 text-sm text-ink outline-none focus:border-accent"
         />
-      </Card>
+      </div>
     </div>
   );
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+function PlanRow({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: string;
+  tone: "accent" | "ink" | "dim";
+}) {
   return (
-    <div className="mb-3 rounded-xl border border-line bg-panel p-4">
-      <h2 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[.06em] text-faint">{title}</h2>
-      {children}
+    <div className="flex gap-2 text-sm">
+      <span className="w-16 shrink-0 text-[11px] uppercase tracking-[.06em] text-faint">{label}</span>
+      <span className={tone === "accent" ? "text-accent" : tone === "ink" ? "text-ink" : "text-dim"}>
+        {value}
+      </span>
     </div>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="min-w-[95px] flex-1">
-      <span className="mb-1 block text-[11px] uppercase tracking-[.06em] text-faint">{label}</span>
-      {children}
-    </label>
   );
 }
 
 function ChecklistRow({
   item,
+  bedtimeTarget,
   onToggle,
 }: {
   item: { key: string; label: string; priority: boolean; done: boolean };
+  bedtimeTarget: string;
   onToggle: (key: string) => void;
 }) {
+  const label = item.key === "bed" ? `In bed by ${bedtimeTarget}` : item.label;
   return (
-    <label
-      className={`flex cursor-pointer items-center gap-2.5 py-2.5 text-sm ${
-        item.done ? "text-faint line-through" : "text-dim"
-      }`}
+    <button
+      onClick={() => onToggle(item.key)}
+      className="flex w-full items-center gap-2.5 py-2.5 text-left text-sm"
     >
-      <input
-        type="checkbox"
-        checked={item.done}
-        onChange={() => onToggle(item.key)}
-        className="h-[18px] w-[18px] shrink-0 accent-good"
-      />
-      <span>
-        {item.label}
+      <span
+        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-xs ${
+          item.done ? "border-good bg-good text-white" : "border-line bg-panel-2"
+        }`}
+      >
+        {item.done ? "✓" : ""}
+      </span>
+      <span className={item.done ? "text-good" : "text-dim"}>
+        {label}
         {item.priority && <span className="ml-1 text-caution">★</span>}
       </span>
-    </label>
+    </button>
   );
 }

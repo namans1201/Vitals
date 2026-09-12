@@ -5,7 +5,8 @@ import { useState } from "react";
 import { DateNav } from "@/components/DateNav";
 import { useToast } from "@/components/Toast";
 import { createWorkout, addWorkoutSet, patchWorkoutSet } from "@/lib/api-client";
-import { SESSION_LABELS, type DayPlan, type SessionType } from "@/domain/sessionTemplates";
+import { SESSION_LABELS, type SessionType } from "@/domain/sessionTemplates";
+import type { DayAssignment } from "@/domain/weekPlan";
 import type { ProgressionResult } from "@/domain/progression";
 import type { Exercise, WorkoutSet } from "@/generated/prisma/client";
 import type { WorkoutWithSets, LastTimeForExercise } from "@/lib/workouts";
@@ -21,13 +22,15 @@ const STARTABLE_SESSIONS: SessionType[] = ["upper_a", "lower_a", "upper_b", "low
 
 export function WorkoutClient({
   date,
-  plan,
+  today,
+  flexChoice,
   workout,
   exerciseGroups,
   allExercises,
 }: {
   date: string;
-  plan: DayPlan;
+  today: DayAssignment | null;
+  flexChoice: string;
   workout: WorkoutWithSets | null;
   exerciseGroups: ExerciseGroup[];
   allExercises: Exercise[];
@@ -75,16 +78,22 @@ export function WorkoutClient({
             </div>
           </>
         )}
-        {plan.referenceSessionType && workout?.sessionType !== plan.referenceSessionType && (
-          <div className="mt-2 text-xs text-faint">
-            Four-day split reference: {SESSION_LABELS[plan.referenceSessionType]}
-          </div>
+        {today?.run && (
+          <div className="mt-2 text-xs text-accent">Morning run today — easy, Zone 2.</div>
         )}
       </div>
 
       {!workout && (
         <div className="mb-3 rounded-xl border border-line bg-panel p-4">
-          <p className="mb-3 text-sm text-dim">No session planned today. Start one:</p>
+          <p className="mb-3 text-sm text-dim">
+            {today?.off
+              ? "Strictly off today. Nothing to do — that's the plan working."
+              : today?.flex
+                ? flexChoice === "mobility"
+                  ? "Flexible day — mobility/core if you want it. Or start something:"
+                  : "Flexible day — an easy run or walk. Or start something:"
+                : "No session planned today. Start one:"}
+          </p>
           <div className="flex flex-wrap gap-2">
             {STARTABLE_SESSIONS.map((s) => (
               <button

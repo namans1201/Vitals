@@ -42,6 +42,27 @@ export function formatTimeInTz(date: Date, timezone: string = APP_TIMEZONE): str
   return format(new TZDate(date, timezone), "HH:mm");
 }
 
+/** Weekday of a calendar date as 0 = Monday … 6 = Sunday (not JS's Sunday-first). */
+export function toWeekday(date: Date): number {
+  return (date.getUTCDay() + 6) % 7;
+}
+
+/** The Monday of the week containing this calendar date, as a UTC-midnight Date. */
+export function startOfWeekMonday(date: Date): Date {
+  const monday = new Date(date);
+  monday.setUTCDate(monday.getUTCDate() - toWeekday(date));
+  monday.setUTCHours(0, 0, 0, 0);
+  return monday;
+}
+
+/** "HH:mm" → a friendly "12:30 AM" for display. */
+export function formatClock12h(hhmm: string): string {
+  const [hours, minutes] = hhmm.split(":").map(Number);
+  const suffix = hours >= 12 ? "PM" : "AM";
+  const hour12 = hours % 12 === 0 ? 12 : hours % 12;
+  return `${hour12}:${minutes.toString().padStart(2, "0")} ${suffix}`;
+}
+
 /**
  * Combine a "YYYY-MM-DD" calendar date (the day being viewed/logged — i.e.
  * the wake date) with a "HH:mm" bedtime, both in Asia/Kolkata, into the UTC

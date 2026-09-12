@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { parseDateParam, todayIso } from "@/lib/date";
-import { planForWeekday } from "@/domain/sessionTemplates";
+import { dayFromSchedule, getOrCreateWeekPlan } from "@/lib/weekPlans";
 import { getLastTimeForExercise, getOrCreateWorkoutForDate } from "@/lib/workouts";
 import { progression } from "@/domain/progression";
 import { WorkoutClient } from "./WorkoutClient";
@@ -16,9 +16,10 @@ export default async function WorkoutPage({
   const { date: dateParam } = await searchParams;
   const dateStr = dateParam ?? todayIso();
   const date = parseDateParam(dateStr);
-  const plan = planForWeekday(date.getUTCDay());
 
-  const workout = await getOrCreateWorkoutForDate(date, plan.activeSessionType);
+  const weekPlan = await getOrCreateWeekPlan(date);
+  const today = dayFromSchedule(weekPlan.schedule, date);
+  const workout = await getOrCreateWorkoutForDate(date, today?.lift ?? null);
 
   const exerciseGroups = [];
   if (workout) {
@@ -48,7 +49,8 @@ export default async function WorkoutPage({
   return (
     <WorkoutClient
       date={dateStr}
-      plan={plan}
+      today={today}
+      flexChoice={weekPlan.flexChoice}
       workout={workout}
       exerciseGroups={exerciseGroups}
       allExercises={allExercises}
