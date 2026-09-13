@@ -152,8 +152,11 @@ export function NutritionClient({
               >
                 <div className="min-w-0">
                   <div className="text-sm font-medium text-ink">{preset.name}</div>
-                  <div className="text-xs text-faint">
-                    {preset.time} · {preset.proteinG} g · {preset.caloriesKcal} kcal
+                  {preset.description && (
+                    <div className="mt-0.5 text-xs text-dim">{preset.description}</div>
+                  )}
+                  <div className="mt-0.5 text-xs text-faint">
+                    {preset.time} · {preset.proteinG} g protein · {preset.caloriesKcal} kcal
                   </div>
                 </div>
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-white">
@@ -211,8 +214,11 @@ export function NutritionClient({
               <div key={m.id} className="flex items-center justify-between gap-2 py-2">
                 <div className="min-w-0">
                   <div className="truncate text-sm text-ink">{m.name}</div>
-                  <div className="text-xs text-faint">
-                    {m.time} · {m.proteinG} g · {m.caloriesKcal} kcal
+                  {m.description && (
+                    <div className="mt-0.5 text-xs text-dim">{m.description}</div>
+                  )}
+                  <div className="mt-0.5 text-xs text-faint">
+                    {m.time} · {m.proteinG} g protein · {m.caloriesKcal} kcal
                   </div>
                 </div>
                 <button
