@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IconClose } from "@/components/icons";
 import { EXERCISE_FORM_GUIDE } from "@/domain/exerciseFormGuide";
 import { slugify } from "@/lib/slug";
@@ -83,28 +83,50 @@ export function ExerciseFormGuideModal({ exerciseName, onClose }: { exerciseName
 type MediaView = "anim" | "still";
 
 /** Source art is 1536x1024; scripts/optimize-exercise-media.mjs emits the
- * 768px WebP pair the app actually ships. Both are always offered - the
- * animation shows the movement, the still is easier to study mid-set. */
+ * 768px still every exercise has, plus a `-anim.webp` ONLY for exercises
+ * whose source GIF turned out to have real motion (most don't - see that
+ * script's header for how that was found and confirmed). */
 const MEDIA_SIZE = { width: 768, height: 512 };
 
 function MediaTab({ exerciseName }: { exerciseName: string }) {
   const slug = slugify(exerciseName);
-  const [view, setView] = useState<MediaView>("anim");
-  const [failed, setFailed] = useState<Record<MediaView, boolean>>({ anim: false, still: false });
+  const [view, setView] = useState<MediaView>("still");
+  const [stillFailed, setStillFailed] = useState(false);
+  // null = still checking whether an animation exists for this exercise.
+  const [animAvailable, setAnimAvailable] = useState<boolean | null>(null);
 
-  if (failed.anim && failed.still) {
+  useEffect(() => {
+    setAnimAvailable(null);
+    let cancelled = false;
+    // HEAD, not a full <img> load: most exercises have no animation, and an
+    // <img src> pointed at a file that doesn't exist would mean a failed
+    // request plus a broken-image flash on every single one of them.
+    fetch(`/exercises/${slug}-anim.webp`, { method: "HEAD" })
+      .then((res) => {
+        if (!cancelled) setAnimAvailable(res.ok);
+      })
+      .catch(() => {
+        if (!cancelled) setAnimAvailable(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [slug]);
+
+  if (stillFailed) {
     return (
       <div className="rounded-xl bg-panel-2 p-4 text-center text-xs text-faint">
         No media yet. Generate it from EXERCISE_IMAGE_PROMPTS.md /
-        EXERCISE_GIF_PROMPTS.md, drop the PNG and GIF into{" "}
-        <code className="text-dim">public/exercises/</code>, then run{" "}
-        <code className="text-dim">node scripts/optimize-exercise-media.mjs</code>.
+        EXERCISE_GIF_PROMPTS.md, drop the PNG (and GIF, if the movement needs
+        showing) into <code className="text-dim">public/exercises/</code>,
+        then run <code className="text-dim">node scripts/optimize-exercise-media.mjs</code>.
       </div>
     );
   }
 
-  // If the preferred view is missing, fall through to whichever one loaded.
-  const active: MediaView = failed[view] ? (view === "anim" ? "still" : "anim") : view;
+  // Still available and confirmed animatable is required to show "anim" -
+  // otherwise show the still regardless of what the toggle last said.
+  const active: MediaView = view === "anim" && animAvailable ? "anim" : "still";
   const src = active === "anim" ? `/exercises/${slug}-anim.webp` : `/exercises/${slug}.webp`;
 
   return (
@@ -120,11 +142,18 @@ function MediaTab({ exerciseName }: { exerciseName: string }) {
           width={MEDIA_SIZE.width}
           height={MEDIA_SIZE.height}
           className="w-full object-contain"
-          onError={() => setFailed((f) => ({ ...f, [active]: true }))}
+          onError={() => {
+            // The still failing means there's genuinely nothing to show.
+            // The animation failing despite a successful HEAD check (should
+            // not happen - HEAD and GET hit the same static file) is treated
+            // as "actually not available" rather than hiding the still too.
+            if (active === "still") setStillFailed(true);
+            else setAnimAvailable(false);
+          }}
         />
       </div>
 
-      {!failed.anim && !failed.still && (
+      {animAvailable && (
         <div className="flex gap-1 rounded-full border border-line bg-panel-2 p-0.5">
           <MediaToggle active={active === "anim"} onClick={() => setView("anim")}>
             Animated
