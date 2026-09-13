@@ -40,9 +40,99 @@
 }
 
 body {
+  position: relative;
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-amulya), ui-sans-serif, system-ui, sans-serif;
+}
+
+/*
+ * Ambient background — a few soft, near-mono blobs that drift slowly rather
+ * than a flat fill. Pure CSS: a fixed pseudo-element behind everything, no
+ * image request, no JS. `position: fixed` (not `background-attachment:
+ * fixed` on body directly) because iOS Safari has never reliably kept a
+ * `fixed`-attachment background still under scrolling content - a real
+ * fixed element sidesteps that entirely, the same reason AppNav's glass
+ * bars are `fixed` rather than `sticky`.
+ *
+ * Every stop is one of this theme's own greys - nothing here introduces a
+ * new hue. The animation only moves each gradient's origin a few percent
+ * and back, over 40s+, so it reads as "the room is breathing" rather than
+ * anything that competes for attention; prefers-reduced-motion (below)
+ * freezes it to a single still frame like everything else animated here.
+ */
+/* Registered so the browser treats these as real animatable percentages -
+ * an unregistered custom property doesn't interpolate and won't reliably
+ * trigger a repaint of the gradient that reads it. */
+@property --bg-x1 {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 15%;
+}
+@property --bg-y1 {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 20%;
+}
+@property --bg-x2 {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 85%;
+}
+@property --bg-y2 {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 30%;
+}
+@property --bg-x3 {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 50%;
+}
+@property --bg-y3 {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 90%;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 70% 55% at var(--bg-x1) var(--bg-y1), #eae6df 0%, transparent 62%),
+    radial-gradient(ellipse 65% 50% at var(--bg-x2) var(--bg-y2), #dfe4e9 0%, transparent 62%),
+    radial-gradient(ellipse 75% 60% at var(--bg-x3) var(--bg-y3), #e6e3de 0%, transparent 66%),
+    var(--bg);
+  animation: ambient-drift 48s ease-in-out infinite alternate;
+}
+
+@keyframes ambient-drift {
+  0% {
+    --bg-x1: 10%;
+    --bg-y1: 15%;
+    --bg-x2: 88%;
+    --bg-y2: 25%;
+    --bg-x3: 45%;
+    --bg-y3: 95%;
+  }
+  50% {
+    --bg-x1: 22%;
+    --bg-y1: 30%;
+    --bg-x2: 78%;
+    --bg-y2: 40%;
+    --bg-x3: 58%;
+    --bg-y3: 85%;
+  }
+  100% {
+    --bg-x1: 15%;
+    --bg-y1: 22%;
+    --bg-x2: 82%;
+    --bg-y2: 20%;
+    --bg-x3: 50%;
+    --bg-y3: 92%;
+  }
 }
 
 h1,
@@ -116,9 +206,9 @@ h4 {
  * silently break compositing again.
  */
 .glass {
-  background: rgba(142, 142, 148, 0.24);
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  background: rgba(142, 142, 148, 0.15);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.8);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.75),
@@ -144,9 +234,30 @@ h4 {
  * top/bottom bars) — same grey-glass fill and blur, no floating shadow or
  * rim (the component's own border-top/bottom supplies the edge). */
 .glass-flush {
-  background: rgba(142, 142, 148, 0.22);
-  backdrop-filter: blur(28px) saturate(190%);
-  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  background: rgba(142, 142, 148, 0.14);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+}
+
+/* Progressive enhancement: the actual "liquid" ripple, layered on top of the
+ * plain blur+saturate above wherever the engine genuinely supports an SVG
+ * filter reference inside backdrop-filter (Chromium confirmed; Safari's
+ * backdrop-filter has historically ignored a url() filter function even
+ * though it accepts the declaration, so it silently keeps the plain blur
+ * above instead - `@supports` only proves the CSS parses, not that it
+ * renders, so this is a best-effort layer, not a guarantee. #liquid-glass-
+ * distortion is the hidden <svg><filter> AppNav renders once).
+ *
+ * Must come after BOTH .glass and .glass-flush above: same specificity, so
+ * whichever rule is later in the file wins for a given selector - this was
+ * originally placed between them and silently lost to the plain
+ * .glass-flush rule that followed it, leaving mobile with no ripple. */
+@supports (backdrop-filter: url(#liquid-glass-distortion)) {
+  .glass,
+  .glass-flush {
+    backdrop-filter: blur(13px) saturate(150%) url(#liquid-glass-distortion);
+    -webkit-backdrop-filter: blur(13px) saturate(150%) url(#liquid-glass-distortion);
+  }
 }
 
 /*

@@ -30,11 +30,32 @@ function Wordmark() {
   );
 }
 
+/** The "liquid" in liquid glass: gently warps whatever the backdrop-filter
+ * blur samples from behind the glass bars, so it reads as refraction
+ * rather than a flat frosted pane. Zero visual footprint of its own
+ * (0x0, aria-hidden) - only referenced via `url(#liquid-glass-distortion)`
+ * in globals.css's `.glass`/`.glass-flush` rules, and only where
+ * `@supports` confirms the engine honours that reference at all. Doesn't
+ * touch the bars' own text/icons - backdrop-filter only affects the
+ * sampled backdrop, never the element's own children. */
+function LiquidGlassFilter() {
+  return (
+    <svg width="0" height="0" aria-hidden="true" className="absolute">
+      <filter id="liquid-glass-distortion">
+        <feTurbulence type="fractalNoise" baseFrequency="0.008 0.012" numOctaves={2} seed={7} result="noise" />
+        <feDisplacementMap in="SourceGraphic" in2="noise" scale="16" xChannelSelector="R" yChannelSelector="G" />
+      </filter>
+    </svg>
+  );
+}
+
 export function AppNav() {
   const pathname = usePathname();
 
   return (
     <>
+      <LiquidGlassFilter />
+
       {/* Tablet & desktop - inset rounded bar in liquid glass, floating over
           the page. This is `fixed` directly on the `.glass` element itself
           (not a `sticky` ancestor with `.glass` nested inside, and not
