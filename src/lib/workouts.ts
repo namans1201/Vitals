@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { SESSION_TEMPLATES, type SessionType } from "@/domain/sessionTemplates";
+import { hasLoggedWork, shouldReplaceScaffold } from "@/domain/sessionReconcile";
 import type { Prisma } from "@/generated/prisma/client";
 
 export const workoutInclude = {
@@ -41,11 +42,16 @@ export async function createSetsFromTemplate(workoutId: number, sessionType: Ses
 }
 
 /**
- * The day's primary workout: returns the existing one if there is one,
- * otherwise auto-creates it from `activeSessionType`'s template (idempotent
- * — a page reload never duplicates it, since it only creates when none
- * exists yet). Returns null when there's neither an existing workout nor an
- * active planned session (e.g. a non-Saturday during the Week 6 reset).
+ * The day's primary workout, reconciled against what the week plan currently
+ * says should happen that day.
+ *
+ * Re-planning a week is a normal weekly action, so a session auto-created
+ * under an older plan must not stick around showing the wrong thing. Empty
+ * auto-created scaffolding is therefore replaced when the plan changes —
+ * but a session with *any* logged work is never touched, because that's real
+ * data and the plan changing doesn't unmake the training that happened.
+ *
+ * Returns null when nothing is planned and nothing exists yet.
  */
 export async function getOrCreateWorkoutForDate(
   date: Date,
@@ -56,7 +62,18 @@ export async function getOrCreateWorkoutForDate(
     include: workoutInclude,
     orderBy: { id: "asc" },
   });
-  if (existing) return existing;
+
+  if (existing) {
+    const replace = shouldReplaceScaffold({
+      existingSessionType: existing.sessionType,
+      plannedSessionType: activeSessionType,
+      existingHasLoggedWork: hasLoggedWork(existing.sets),
+    });
+    if (!replace) return existing;
+    // Untouched scaffolding from a previous plan — safe to discard.
+    await prisma.workout.delete({ where: { id: existing.id } });
+  }
+
   if (!activeSessionType) return null;
 
   await prisma.dailyLog.upsert({ where: { date }, create: { date }, update: {} });
