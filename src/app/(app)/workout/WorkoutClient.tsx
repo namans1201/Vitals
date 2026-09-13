@@ -6,9 +6,9 @@ import { DateNav } from "@/components/DateNav";
 import { useToast } from "@/components/Toast";
 import { createWorkout, addWorkoutSet, patchWorkoutSet } from "@/lib/api-client";
 import { SESSION_LABELS, type SessionType } from "@/domain/sessionTemplates";
-import { IconClose, IconInfo, IconMinus, IconPlus, IconRun } from "@/components/icons";
-import { useEscapeKey } from "@/lib/useEscapeKey";
+import { IconInfo, IconMinus, IconPlus, IconRun } from "@/components/icons";
 import { playCountdownBeep, playPersonalRecord, playRestOver, vibrate } from "@/lib/sounds";
+import { clampWholeNumber, sanitizeWholeNumberInput } from "@/domain/setInput";
 import { ExerciseFormGuideModal } from "@/components/ExerciseFormGuideModal";
 import type { DayAssignment } from "@/domain/weekPlan";
 import type { ProgressionResult } from "@/domain/progression";
@@ -26,6 +26,11 @@ export type ExerciseGroup = {
 const STARTABLE_SESSIONS: SessionType[] = ["upper_a", "lower_a", "upper_b", "lower_b", "full_body"];
 const REST_DEFAULT_SECONDS = 90;
 const REST_STEP_SECONDS = 15;
+// A set needs at least one rep to count as done - 0 isn't a valid rep count,
+// it's "didn't happen". RIR ("reps in reserve") is different: 0 is a real,
+// common value - it means the set was taken all the way to failure.
+const MIN_REPS = 1;
+const MIN_RIR = 0;
 
 type RestState = { active: boolean; remaining: number; total: number };
 
@@ -272,26 +277,28 @@ function ExerciseCard({
 }) {
   const { exercise, sets, lastTime, bestEver, progression: prog } = group;
   const toast = useToast();
-  const [weightModalOpen, setWeightModalOpen] = useState(false);
   const [formGuideOpen, setFormGuideOpen] = useState(false);
-  // Reps and weight are lifted here (not left inside each set row / the
-  // weight modal) purely so a PR can be checked against the exercise's
-  // whole current session - RIR and the completed toggle don't affect any
-  // PR metric, so those stay local to SetRow as before.
+  // Reps are lifted here (not left inside each set row) purely so a PR can
+  // be checked against the exercise's whole current session - RIR and the
+  // completed toggle don't affect any PR metric, so those stay local to
+  // SetRow. Weight has no input on this screen anymore (see the removed
+  // "+ Kg" pill) - this only reads whatever weightKg a set already has, so
+  // an existing weight/volume PR can still be detected; it's never written
+  // from here, hence a plain derived value rather than its own state.
   const [reps, setReps] = useState(() => new Map(sets.map((s) => [s.id, s.reps?.toString() ?? ""])));
-  const [weights, setWeights] = useState(() => new Map(sets.map((s) => [s.id, s.weightKg?.toString() ?? ""])));
+  const weights = new Map(sets.map((s) => [s.id, s.weightKg?.toString() ?? ""]));
   const celebratedPRs = useRef<Set<PRType>>(new Set());
 
-  function checkPRs(nextReps: Map<number, string>, nextWeights: Map<number, string>) {
+  function checkPRs(nextReps: Map<number, string>) {
     let maxReps = 0;
     let maxWeight = 0;
     let volume = 0;
     for (const id of nextReps.keys()) {
       const r = Number(nextReps.get(id));
-      const w = Number(nextWeights.get(id));
+      const w = Number(weights.get(id));
       if (nextReps.get(id) && r > maxReps) maxReps = r;
-      if (nextWeights.get(id) && w > maxWeight) maxWeight = w;
-      if (nextReps.get(id) && nextWeights.get(id)) volume += r * w;
+      if (weights.get(id) && w > maxWeight) maxWeight = w;
+      if (nextReps.get(id) && weights.get(id)) volume += r * w;
     }
 
     const prs: { type: PRType; message: string }[] = [];
@@ -318,19 +325,15 @@ function ExerciseCard({
     setReps((prev) => new Map(prev).set(setId, value));
   }
   function handleRepsBlur(setId: number, value: string) {
-    patchWorkoutSet(workoutId, setId, { reps: value === "" ? null : Number(value) }).catch(() =>
+    // A set needs at least one rep to count as done - "0" typed and blurred
+    // gets bumped up to 1 rather than saved as-is; empty (never touched)
+    // stays empty, since that means "not logged", not "zero".
+    const clamped = clampWholeNumber(value, MIN_REPS);
+    if (clamped !== value) setReps((prev) => new Map(prev).set(setId, clamped));
+    patchWorkoutSet(workoutId, setId, { reps: clamped === "" ? null : Number(clamped) }).catch(() =>
       toast("Couldn't save - check your connection"),
     );
-    checkPRs(new Map(reps).set(setId, value), weights);
-  }
-  function handleWeightChange(setId: number, value: string) {
-    setWeights((prev) => new Map(prev).set(setId, value));
-  }
-  function handleWeightBlur(setId: number, value: string) {
-    patchWorkoutSet(workoutId, setId, { weightKg: value === "" ? null : Number(value) }).catch(() =>
-      toast("Couldn't save - check your connection"),
-    );
-    checkPRs(reps, new Map(weights).set(setId, value));
+    checkPRs(new Map(reps).set(setId, clamped));
   }
 
   return (
@@ -348,17 +351,6 @@ function ExerciseCard({
             aria-label="Form guide"
           >
             <IconInfo size={15} />
-          </button>
-          {/* Weight is opt-in and off to the side on purpose - reps/sets
-              against the plan above are the point of this screen. Logging a
-              weight opens one small modal for the whole exercise instead of
-              a pill wedged onto every set row. */}
-          <button
-            type="button"
-            onClick={() => setWeightModalOpen(true)}
-            className="micro rounded-full border border-line px-2 py-1 text-faint transition-colors hover:border-dim hover:text-dim"
-          >
-            + Kg
           </button>
         </div>
       </div>
@@ -400,16 +392,6 @@ function ExerciseCard({
         ))}
       </div>
 
-      {weightModalOpen && (
-        <WeightModal
-          exerciseName={exercise.name}
-          sets={sets}
-          weights={weights}
-          onChange={handleWeightChange}
-          onBlur={handleWeightBlur}
-          onClose={() => setWeightModalOpen(false)}
-        />
-      )}
       {formGuideOpen && (
         <ExerciseFormGuideModal exerciseName={exercise.name} onClose={() => setFormGuideOpen(false)} />
       )}
@@ -449,6 +431,14 @@ function SetRow({
     if (next) onSetCompleted();
   }
 
+  function handleRirBlur() {
+    // 0 RIR is a real, common value (the set was taken to failure) - only a
+    // negative or non-numeric value gets corrected here, never bumped up.
+    const clamped = clampWholeNumber(rir, MIN_RIR);
+    if (clamped !== rir) setRir(clamped);
+    save({ rir: clamped === "" ? null : Number(clamped) });
+  }
+
   return (
     <div className="flex items-center gap-1.5">
       <button
@@ -459,82 +449,8 @@ function SetRow({
       >
         {index}
       </button>
-      <LabeledField label="Reps" value={reps} onChange={onRepsChange} onBlur={() => onRepsBlur(reps)} />
-      <LabeledField
-        label="RIR"
-        value={rir}
-        onChange={(v) => setRir(v)}
-        onBlur={() => save({ rir: rir === "" ? null : Number(rir) })}
-      />
-    </div>
-  );
-}
-
-/** Weight logging for a whole exercise in one place, off the main set rows -
- * kg is opt-in and not the point of this screen (see the "+ Kg" button in
- * ExerciseCard), but still per-set once you do want it. Controlled by
- * ExerciseCard (not its own local state) so a weight entered here can feed
- * the same-card PR check. */
-function WeightModal({
-  exerciseName,
-  sets,
-  weights,
-  onChange,
-  onBlur,
-  onClose,
-}: {
-  exerciseName: string;
-  sets: WorkoutSet[];
-  weights: Map<number, string>;
-  onChange: (setId: number, value: string) => void;
-  onBlur: (setId: number, value: string) => void;
-  onClose: () => void;
-}) {
-  useEscapeKey(onClose);
-
-  return (
-    <div
-      className="fixed inset-0 z-30 flex items-center justify-center bg-ink/40 px-4 overlay-in"
-      onClick={onClose}
-      role="presentation"
-    >
-      <div className="card modal-in w-full max-w-xs p-4" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-        <div className="mb-3 flex items-center justify-between">
-          <span className="font-heading text-sm font-bold text-ink">{exerciseName}</span>
-          <button
-            onClick={onClose}
-            className="flex h-8 w-8 items-center justify-center rounded-full text-dim hover:bg-panel-2 hover:text-ink"
-            aria-label="Close"
-          >
-            <IconClose size={15} />
-          </button>
-        </div>
-        <div className="space-y-2">
-          {sets.map((set, i) => (
-            <div key={set.id} className="flex items-center justify-between gap-3">
-              <span className="text-sm text-dim">Set {i + 1}</span>
-              <div className="flex items-center gap-1.5">
-                <input
-                  type="number"
-                  step="0.5"
-                  placeholder="-"
-                  value={weights.get(set.id) ?? ""}
-                  onChange={(e) => onChange(set.id, e.target.value)}
-                  onBlur={(e) => onBlur(set.id, e.target.value)}
-                  className="h-11 w-20 rounded-xl border border-line bg-panel-2 px-2 text-center text-sm text-ink outline-none focus:border-accent"
-                />
-                <span className="text-xs text-faint">kg</span>
-              </div>
-            </div>
-          ))}
-        </div>
-        <button
-          onClick={onClose}
-          className="mt-4 h-10 w-full rounded-full bg-accent text-sm font-medium text-white"
-        >
-          Done
-        </button>
-      </div>
+      <LabeledField label="Reps" value={reps} onChange={onRepsChange} onBlur={() => onRepsBlur(reps)} min={MIN_REPS} />
+      <LabeledField label="RIR" value={rir} onChange={setRir} onBlur={handleRirBlur} min={MIN_RIR} />
     </div>
   );
 }
@@ -544,23 +460,29 @@ function LabeledField({
   value,
   onChange,
   onBlur,
-  step,
+  min = 0,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   onBlur: () => void;
-  step?: string;
+  /** The field's floor - 1 for Reps (a set needs at least one to count),
+   * 0 for RIR (going to failure is a real value, not a missing one). Also
+   * set as the input's own `min`, so the native step buttons won't go
+   * below it either. */
+  min?: number;
 }) {
   return (
     <label className="flex shrink-0 flex-col items-center gap-1">
       <span className="micro text-faint">{label}</span>
       <input
         type="number"
-        step={step}
+        min={min}
+        step={1}
+        inputMode="numeric"
         placeholder="-"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange(sanitizeWholeNumberInput(e.target.value))}
         onBlur={onBlur}
         className="h-11 w-14 rounded-xl border border-line bg-panel-2 px-1 text-center text-sm text-ink outline-none focus:border-accent"
       />
