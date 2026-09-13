@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/db";
 import { parseDateParam, todayIso } from "@/lib/date";
 import { dayFromSchedule, getOrCreateWeekPlan } from "@/lib/weekPlans";
-import { getAllTimeBestForExercise, getLastTimeForExercise, getOrCreateWorkoutForDate } from "@/lib/workouts";
+import { getExerciseHistories, getOrCreateWorkoutForDate } from "@/lib/workouts";
+import { EMPTY_HISTORY } from "@/domain/exerciseHistory";
 import { progression } from "@/domain/progression";
 import { WorkoutClient, type ExerciseGroup } from "./WorkoutClient";
 
@@ -19,7 +20,14 @@ export default async function WorkoutPage({
 
   const weekPlan = await getOrCreateWeekPlan(date);
   const today = dayFromSchedule(weekPlan.schedule, date);
-  const workout = await getOrCreateWorkoutForDate(date, today?.lift ?? null);
+
+  // The exercise list for the "add an exercise" picker depends on nothing
+  // else on this page, so it rides along with the workout lookup instead of
+  // being awaited at the end as its own round-trip.
+  const [workout, allExercises] = await Promise.all([
+    getOrCreateWorkoutForDate(date, today?.lift ?? null),
+    prisma.exercise.findMany({ orderBy: { name: "asc" } }),
+  ]);
 
   let exerciseGroups: ExerciseGroup[] = [];
   if (workout) {
@@ -30,20 +38,18 @@ export default async function WorkoutPage({
       return true;
     });
 
-    // One exercise's last-time/best-ever lookups don't depend on another's,
-    // so fetch them all in parallel instead of serially awaiting inside the
-    // loop - with 4-8 exercises per session this was otherwise 4-8+
-    // sequential DB round-trips.
-    const [lastTimes, bestEvers] = await Promise.all([
-      Promise.all(uniqueSets.map((set) => getLastTimeForExercise(set.exerciseId, date))),
-      Promise.all(uniqueSets.map((set) => getAllTimeBestForExercise(set.exerciseId, date))),
-    ]);
+    // One query answers last-time and best-ever for every exercise in the
+    // session - they read the same rows, so asking per exercise meant ~21
+    // round-trips for a 7-exercise day.
+    const histories = await getExerciseHistories(
+      uniqueSets.map((set) => set.exerciseId),
+      date,
+    );
 
-    exerciseGroups = uniqueSets.map((set, i) => {
+    exerciseGroups = uniqueSets.map((set) => {
       const sets = workout.sets.filter((s) => s.exerciseId === set.exerciseId);
       const exercise = set.exercise;
-      const lastTime = lastTimes[i];
-      const bestEver = bestEvers[i];
+      const { lastTime, bestEver } = histories.get(set.exerciseId) ?? EMPTY_HISTORY;
       const loggedLastSets = (lastTime?.sets ?? []).filter(
         (s): s is { reps: number; weightKg: number | null; rir: number | null } => s.reps !== null,
       );
@@ -56,8 +62,6 @@ export default async function WorkoutPage({
       return { exercise, sets, lastTime, bestEver, progression: progressionResult };
     });
   }
-
-  const allExercises = await prisma.exercise.findMany({ orderBy: { name: "asc" } });
 
   return (
     <WorkoutClient

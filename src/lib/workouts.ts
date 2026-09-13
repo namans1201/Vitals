@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/db";
 import { SESSION_TEMPLATES, type SessionType } from "@/domain/sessionTemplates";
 import { hasLoggedWork, shouldReplaceScaffold } from "@/domain/sessionReconcile";
+import {
+  summariseHistoriesByExercise,
+  type ExerciseHistory,
+} from "@/domain/exerciseHistory";
 import type { Prisma } from "@/generated/prisma/client";
 
 export const workoutInclude = {
@@ -83,72 +87,55 @@ export async function getOrCreateWorkoutForDate(
   return prisma.workout.findUniqueOrThrow({ where: { id: created.id }, include: workoutInclude });
 }
 
-export type LastTimeSet = { reps: number | null; weightKg: number | null; rir: number | null };
-export type LastTimeForExercise = { date: Date; sets: LastTimeSet[] } | null;
+export type {
+  LastTimeSet,
+  LastTimeForExercise,
+  BestEverForExercise,
+  ExerciseHistory,
+} from "@/domain/exerciseHistory";
 
-/** The most recent prior session's sets for this exercise, for the
- * "last-time panel" and as input to domain/progression.ts. */
-export async function getLastTimeForExercise(
-  exerciseId: number,
+/**
+ * "Last time" and "best ever" for several exercises at once.
+ *
+ * Both answers come from the same set of rows - every set logged for these
+ * exercises before `beforeDate` - so this is one query for the whole
+ * session rather than three per exercise (a findFirst plus a findMany for
+ * last-time, plus a findMany for best-ever). A 7-exercise session went from
+ * ~21 round-trips to 1. The shaping is pure and tested in
+ * domain/exerciseHistory.ts.
+ *
+ * Requires the WorkoutSet.exerciseId index - without it this filter is a
+ * sequential scan that grows with total training history.
+ */
+export async function getExerciseHistories(
+  exerciseIds: number[],
   beforeDate: Date,
-): Promise<LastTimeForExercise> {
-  const lastSet = await prisma.workoutSet.findFirst({
-    where: { exerciseId, workout: { date: { lt: beforeDate } } },
-    orderBy: { workout: { date: "desc" } },
-    include: { workout: true },
-  });
-  if (!lastSet) return null;
+): Promise<Map<number, ExerciseHistory>> {
+  if (exerciseIds.length === 0) return new Map();
 
-  const sets = await prisma.workoutSet.findMany({
-    where: { exerciseId, workout: { date: lastSet.workout.date } },
-    orderBy: { setIndex: "asc" },
-  });
-  return {
-    date: lastSet.workout.date,
-    sets: sets.map((s) => ({ reps: s.reps, weightKg: s.weightKg, rir: s.rir })),
-  };
-}
-
-export type BestEverForExercise = {
-  /** Heaviest single set ever logged, or null if weight has never been logged. */
-  maxWeightKg: number | null;
-  /** Most reps in a single set ever logged. */
-  maxReps: number | null;
-  /** Best single past session's total volume (sum of reps x weightKg across
-   * that session's sets) - only counts sets where both are present, so an
-   * exercise with no weight history never gets a misleading 0 "PR". */
-  maxVolume: number | null;
-};
-
-/** Best-ever numbers for this exercise across every session before
- * `beforeDate` - not just the last one - so a set logged today can be
- * compared against the true all-time record, not just what happened last
- * time. Kg is opt-in in this app now, so weight/volume gracefully stay
- * null when nothing's ever been weighed for this exercise. */
-export async function getAllTimeBestForExercise(
-  exerciseId: number,
-  beforeDate: Date,
-): Promise<BestEverForExercise> {
-  const sets = await prisma.workoutSet.findMany({
-    where: { exerciseId, workout: { date: { lt: beforeDate } } },
-    select: { reps: true, weightKg: true, workoutId: true },
+  const rows = await prisma.workoutSet.findMany({
+    where: { exerciseId: { in: exerciseIds }, workout: { date: { lt: beforeDate } } },
+    select: {
+      exerciseId: true,
+      workoutId: true,
+      setIndex: true,
+      reps: true,
+      weightKg: true,
+      rir: true,
+      workout: { select: { date: true } },
+    },
   });
 
-  let maxWeightKg: number | null = null;
-  let maxReps: number | null = null;
-  const volumeByWorkout = new Map<number, number>();
-
-  for (const s of sets) {
-    if (s.weightKg != null) maxWeightKg = maxWeightKg == null ? s.weightKg : Math.max(maxWeightKg, s.weightKg);
-    if (s.reps != null) maxReps = maxReps == null ? s.reps : Math.max(maxReps, s.reps);
-    if (s.reps != null && s.weightKg != null) {
-      volumeByWorkout.set(s.workoutId, (volumeByWorkout.get(s.workoutId) ?? 0) + s.reps * s.weightKg);
-    }
-  }
-
-  return {
-    maxWeightKg,
-    maxReps,
-    maxVolume: volumeByWorkout.size > 0 ? Math.max(...volumeByWorkout.values()) : null,
-  };
+  return summariseHistoriesByExercise(
+    rows.map((r) => ({
+      exerciseId: r.exerciseId,
+      workoutId: r.workoutId,
+      date: r.workout.date,
+      setIndex: r.setIndex,
+      reps: r.reps,
+      weightKg: r.weightKg,
+      rir: r.rir,
+    })),
+    exerciseIds,
+  );
 }

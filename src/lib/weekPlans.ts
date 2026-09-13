@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { startOfWeekMonday, toWeekday } from "@/lib/date";
+import { startOfWeekMonday, toDateParam, toWeekday } from "@/lib/date";
 import {
   buildWeekSchedule,
   type DayAssignment,
@@ -74,10 +74,47 @@ export async function getOrCreateWeekPlan(date: Date): Promise<WeekPlanWithSched
 export async function previewWeekSchedule(date: Date): Promise<WeekSchedule> {
   const weekStart = startOfWeekMonday(date);
   const stored = await prisma.weekPlan.findUnique({ where: { weekStart } });
+  return scheduleFromStored(stored);
+}
+
+/** The schedule a week's stored picks produce, falling back to the defaults
+ * for a week that was never planned. Pure - no I/O. */
+function scheduleFromStored(
+  stored: { runDays: number[]; offDays: number[] } | null,
+): WeekSchedule {
   const runDays = stored ? asWeekdays(stored.runDays) : DEFAULT_RUN_DAYS;
   const offDays = stored ? asWeekdays(stored.offDays) : DEFAULT_OFF_DAYS;
   const result = buildWeekSchedule({ runDays, offDays });
   return result.ok ? result.schedule : { days: [] };
+}
+
+/**
+ * `previewWeekSchedule` for many weeks in one query, keyed by the week's
+ * Monday as an ISO date string.
+ *
+ * The calendar and the streak both walk a contiguous range of days, and the
+ * streak's range starts at the earliest thing ever logged - so asking per
+ * week meant a serialized round-trip for every week of history, growing
+ * forever as the log got longer. Weeks with no stored row still get an
+ * entry, built from the defaults, exactly as the single-week version does.
+ */
+export async function previewWeekSchedules(
+  weekStarts: Date[],
+): Promise<Map<string, WeekSchedule>> {
+  if (weekStarts.length === 0) return new Map();
+
+  const stored = await prisma.weekPlan.findMany({
+    where: { weekStart: { in: weekStarts } },
+  });
+  const storedByWeek = new Map(stored.map((s) => [toDateParam(s.weekStart), s]));
+
+  const schedules = new Map<string, WeekSchedule>();
+  for (const weekStart of weekStarts) {
+    const key = toDateParam(weekStart);
+    if (schedules.has(key)) continue;
+    schedules.set(key, scheduleFromStored(storedByWeek.get(key) ?? null));
+  }
+  return schedules;
 }
 
 /** What today specifically holds, pulled out of the week's schedule. */

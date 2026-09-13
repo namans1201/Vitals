@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { toDateParam, toWeekday } from "@/lib/date";
-import { previewWeekSchedule, dayFromSchedule } from "@/lib/weekPlans";
+import { previewWeekSchedules, dayFromSchedule } from "@/lib/weekPlans";
 import type { CalendarDay } from "@/domain/calendarStatus";
 
 export type { CalendarDay } from "@/domain/calendarStatus";
@@ -17,7 +17,19 @@ export async function getDayRange(start: Date, end: Date): Promise<CalendarDay[]
     allDates.push(new Date(d));
   }
 
-  const [dailyLogs, workouts] = await Promise.all([
+  // Every distinct Monday the range touches, so the week schedules can be
+  // fetched in one query alongside the logs rather than one per week.
+  const weekStartByDate = new Map<string, Date>();
+  const weekStarts: Date[] = [];
+  for (const date of allDates) {
+    const monday = new Date(date);
+    monday.setUTCDate(monday.getUTCDate() - toWeekday(date));
+    const mondayIso = toDateParam(monday);
+    weekStartByDate.set(toDateParam(date), monday);
+    if (!weekStarts.some((w) => toDateParam(w) === mondayIso)) weekStarts.push(monday);
+  }
+
+  const [dailyLogs, workouts, schedules] = await Promise.all([
     prisma.dailyLog.findMany({
       where: { date: { gte: start, lte: end } },
       select: { date: true, ranDone: true },
@@ -26,6 +38,7 @@ export async function getDayRange(start: Date, end: Date): Promise<CalendarDay[]
       where: { date: { gte: start, lte: end } },
       select: { date: true, sets: { select: { completed: true } } },
     }),
+    previewWeekSchedules(weekStarts),
   ]);
   const ranDoneByDate = new Map(dailyLogs.map((l) => [toDateParam(l.date), l.ranDone]));
   const workoutByDate = new Map(
@@ -35,21 +48,11 @@ export async function getDayRange(start: Date, end: Date): Promise<CalendarDay[]
     ]),
   );
 
-  // One schedule preview per distinct week covers every day in it.
   const days: CalendarDay[] = [];
-  const cache = new Map<string, Awaited<ReturnType<typeof previewWeekSchedule>>>();
   for (const date of allDates) {
     const dateIso = toDateParam(date);
-    const monday = new Date(date);
-    monday.setUTCDate(monday.getUTCDate() - toWeekday(date));
-    const mondayIso = toDateParam(monday);
-
-    let schedule = cache.get(mondayIso);
-    if (!schedule) {
-      schedule = await previewWeekSchedule(date);
-      cache.set(mondayIso, schedule);
-    }
-    const assignment = dayFromSchedule(schedule, date);
+    const schedule = schedules.get(toDateParam(weekStartByDate.get(dateIso)!));
+    const assignment = schedule ? dayFromSchedule(schedule, date) : null;
     const workout = workoutByDate.get(dateIso);
 
     days.push({

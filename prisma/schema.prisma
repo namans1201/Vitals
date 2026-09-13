@@ -152,6 +152,10 @@ model WorkoutSet {
   exercise   Exercise @relation(fields: [exerciseId], references: [id])
 
   @@index([workoutId])
+  // The workout screen asks "every set ever logged for these exercises"
+  // (see getExerciseHistories) on every render. Without this that filter is
+  // a sequential scan whose cost grows with total training history.
+  @@index([exerciseId])
 }
 
 model Run {

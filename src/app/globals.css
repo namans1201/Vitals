@@ -39,10 +39,6 @@
   --font-body: var(--font-amulya);
 }
 
-html {
-  scroll-behavior: smooth;
-}
-
 body {
   background: var(--bg);
   color: var(--ink);
@@ -176,13 +172,6 @@ h4 {
   }
 }
 
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-}
-
 @keyframes fade-scale-in {
   from {
     opacity: 0;
@@ -190,9 +179,16 @@ h4 {
   }
 }
 
-/* One-shot entrance for page-level content — plays once on mount/navigation. */
+/* One-shot entrance for page-level content — plays once on mount/navigation.
+ *
+ * Opacity only, and short. This wraps the whole page, so it replays on every
+ * tab switch: a longer fade (this was 320ms) or a translate on top of it
+ * reads as latency rather than polish, because it lands on top of a
+ * server round-trip the user has already waited through. It also used to
+ * move content underneath the fixed glass bars for the duration, forcing
+ * their backdrop-filter to re-blur every frame of it. */
 .animate-in {
-  animation: fade-in-up 320ms ease-out;
+  animation: fade-in 140ms ease-out;
 }
 
 /* Modal backdrop fade. */
