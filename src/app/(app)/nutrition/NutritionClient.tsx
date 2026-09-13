@@ -20,6 +20,7 @@ type Targets = {
 
 export function NutritionClient({
   date,
+  todayIsoStr,
   proteinTargetG,
   calorieTargetKcal,
   fatTargetG,
@@ -29,6 +30,7 @@ export function NutritionClient({
   foods,
 }: Targets & {
   date: string;
+  todayIsoStr: string;
   meals: Meal[];
   presets: MealPreset[];
   foods: FoodItem[];
@@ -98,7 +100,7 @@ export function NutritionClient({
 
   return (
     <div className="mx-auto max-w-2xl animate-in">
-      <DateNav date={date} basePath="/nutrition" />
+      <DateNav date={date} todayIsoStr={todayIsoStr} basePath="/nutrition" />
 
       <div className="card mb-3 p-4">
         <div className="mb-3 flex items-center justify-between">

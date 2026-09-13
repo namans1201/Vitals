@@ -36,6 +36,7 @@ type RestState = { active: boolean; remaining: number; total: number };
 
 export function WorkoutClient({
   date,
+  todayIsoStr,
   today,
   flexChoice,
   workout,
@@ -43,6 +44,7 @@ export function WorkoutClient({
   allExercises,
 }: {
   date: string;
+  todayIsoStr: string;
   today: DayAssignment | null;
   flexChoice: string;
   workout: WorkoutWithSets | null;
@@ -110,7 +112,7 @@ export function WorkoutClient({
 
   return (
     <div className="mx-auto max-w-2xl animate-in">
-      <DateNav date={date} basePath="/workout" />
+      <DateNav date={date} todayIsoStr={todayIsoStr} basePath="/workout" />
 
       <div className="card mb-3 p-4">
         <span className="micro-pill mb-2">

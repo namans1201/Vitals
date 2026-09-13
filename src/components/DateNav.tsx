@@ -4,20 +4,35 @@ import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { addDays, differenceInCalendarDays, format, parseISO, startOfWeek } from "date-fns";
 import { IconChevronLeft, IconChevronRight } from "@/components/icons";
-import { todayIso } from "@/lib/date";
 
 // The full month view lives on the Week tab now (see PlanClient.tsx) - this
 // bar only handles nearby-day browsing, so it doesn't need its own calendar
 // trigger/overlay.
-export function DateNav({ date, basePath = "/" }: { date: string; basePath?: string }) {
+export function DateNav({
+  date,
+  todayIsoStr,
+  basePath = "/",
+}: {
+  date: string;
+  /** "Today" in Asia/Kolkata, as computed once by the server (see
+   * lib/date.ts's todayIso()) - passed in rather than called again here.
+   * This component renders once during SSR and again during client
+   * hydration; calling todayIso() independently in both passes would ask
+   * "what's today" at two different real-world moments; if the calendar
+   * day rolls over in the (usually very short) gap between them, the two
+   * renders disagree and React logs a hydration mismatch. Taking the
+   * server's answer as a prop instead means both passes use the exact same
+   * value no matter when hydration actually happens. */
+  todayIsoStr: string;
+  basePath?: string;
+}) {
   const router = useRouter();
   const current = parseISO(date);
   // Both `current` and `todayDate` are parsed from a "YYYY-MM-DD" string the
   // same way (parseISO -> local midnight), so day-arithmetic/comparisons
   // between them stay internally consistent regardless of what timezone the
-  // browser itself is in - only todayIso()'s own computation is pinned to
-  // Asia/Kolkata (matching the server's notion of "today").
-  const todayIsoStr = todayIso();
+  // browser itself is in - only todayIsoStr's own computation (by the
+  // server, see above) is pinned to Asia/Kolkata.
   const todayDate = useMemo(() => parseISO(todayIsoStr), [todayIsoStr]);
   const offsetFromToday = differenceInCalendarDays(current, todayDate);
 

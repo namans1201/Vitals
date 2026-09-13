@@ -15,7 +15,8 @@ export default async function WorkoutPage({
   searchParams: Promise<{ date?: string }>;
 }) {
   const { date: dateParam } = await searchParams;
-  const dateStr = dateParam ?? todayIso();
+  const todayIsoStr = todayIso();
+  const dateStr = dateParam ?? todayIsoStr;
   const date = parseDateParam(dateStr);
 
   const weekPlan = await getOrCreateWeekPlan(date);
@@ -66,6 +67,7 @@ export default async function WorkoutPage({
   return (
     <WorkoutClient
       date={dateStr}
+      todayIsoStr={todayIsoStr}
       today={today}
       flexChoice={weekPlan.flexChoice}
       workout={workout}

@@ -11,7 +11,8 @@ export default async function NutritionPage({
   searchParams: Promise<{ date?: string }>;
 }) {
   const { date: dateParam } = await searchParams;
-  const dateStr = dateParam ?? todayIso();
+  const todayIsoStr = todayIso();
+  const dateStr = dateParam ?? todayIsoStr;
   const date = parseDateParam(dateStr);
 
   const [profile, meals, presets, foods] = await Promise.all([
@@ -27,6 +28,7 @@ export default async function NutritionPage({
   return (
     <NutritionClient
       date={dateStr}
+      todayIsoStr={todayIsoStr}
       proteinTargetG={profile?.proteinTargetG ?? 125}
       calorieTargetKcal={profile?.calorieTargetKcal ?? 2450}
       fatTargetG={profile?.fatTargetG ?? 70}
