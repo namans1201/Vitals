@@ -1,6 +1,6 @@
 /**
  * Rules for reconciling an already-created session against the current week
- * plan. Pure — no I/O — because getting this wrong deletes real training data.
+ * plan. Pure - no I/O - because getting this wrong deletes real training data.
  *
  * Re-planning a week is a normal weekly action, so a session auto-created
  * under an older plan must not linger showing the wrong thing. But anything
@@ -27,7 +27,7 @@ export function shouldReplaceScaffold(input: {
   existingHasLoggedWork: boolean;
 }): boolean {
   const { existingSessionType, plannedSessionType, existingHasLoggedWork } = input;
-  if (plannedSessionType === null) return false; // nothing planned — leave it alone
+  if (plannedSessionType === null) return false; // nothing planned - leave it alone
   if (existingSessionType === plannedSessionType) return false; // already right
   return !existingHasLoggedWork; // only ever discard untouched scaffolding
 }

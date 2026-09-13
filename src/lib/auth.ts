@@ -1,6 +1,6 @@
 /**
  * Single-user auth: one password, checked against APP_PASSWORD, backed by a
- * signed HTTP-only cookie. No NextAuth/OAuth — see BUILD_SPEC.md §2 and §8.
+ * signed HTTP-only cookie. No NextAuth/OAuth - see BUILD_SPEC.md §2 and §8.
  *
  * Uses Web Crypto (`crypto.subtle`) rather than Node's `crypto` module so the
  * same code runs in both the Node.js and Edge runtimes (middleware may run
@@ -15,7 +15,7 @@ const encoder = new TextEncoder();
 function getSessionSecret(): string {
   const secret = process.env.SESSION_SECRET;
   if (!secret) {
-    throw new Error("SESSION_SECRET is not set — check your .env file");
+    throw new Error("SESSION_SECRET is not set - check your .env file");
   }
   return secret;
 }
@@ -23,7 +23,7 @@ function getSessionSecret(): string {
 function getAppPassword(): string {
   const password = process.env.APP_PASSWORD;
   if (!password) {
-    throw new Error("APP_PASSWORD is not set — check your .env file");
+    throw new Error("APP_PASSWORD is not set - check your .env file");
   }
   return password;
 }

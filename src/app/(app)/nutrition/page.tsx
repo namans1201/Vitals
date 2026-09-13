@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db";
 import { parseDateParam, todayIso } from "@/lib/date";
 import { NutritionClient } from "./NutritionClient";
 
-// Reads live DB state on every request — must never be statically prerendered.
+// Reads live DB state on every request - must never be statically prerendered.
 export const dynamic = "force-dynamic";
 
 export default async function NutritionPage() {

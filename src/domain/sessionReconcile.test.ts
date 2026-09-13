@@ -55,7 +55,7 @@ describe("shouldReplaceScaffold", () => {
   });
 
   it("leaves a session alone on a day with nothing planned", () => {
-    // e.g. an ad-hoc session logged on a rest day — the plan doesn't unmake it.
+    // e.g. an ad-hoc session logged on a rest day - the plan doesn't unmake it.
     expect(
       shouldReplaceScaffold({
         existingSessionType: "custom",

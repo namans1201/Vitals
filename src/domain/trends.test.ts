@@ -183,7 +183,7 @@ describe("recompositionSignal", () => {
       point("2026-08-15", 66),
       point("2026-08-22", 64),
     ];
-    // Body fat down + muscle up, but weight is dropping ~2kg/week — not "roughly flat".
+    // Body fat down + muscle up, but weight is dropping ~2kg/week - not "roughly flat".
     expect(recompositionSignal({ weight, bodyFat, muscle, waist: empty })).not.toBe("recomposing");
   });
 });

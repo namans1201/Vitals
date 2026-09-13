@@ -20,7 +20,7 @@ function scheduleOf(runDays: Weekday[], offDays: Weekday[]) {
   return result.schedule;
 }
 
-describe("buildWeekSchedule — input validation", () => {
+describe("buildWeekSchedule - input validation", () => {
   it("requires exactly 3 run days", () => {
     const result = buildWeekSchedule({ runDays: [MON, WED], offDays: [SAT, SUN] });
     expect(result.ok).toBe(false);
@@ -45,7 +45,7 @@ describe("buildWeekSchedule — input validation", () => {
   });
 });
 
-describe("buildWeekSchedule — the no-run-after-legs rule", () => {
+describe("buildWeekSchedule - the no-run-after-legs rule", () => {
   it("rejects the classic Mon/Fri/Sun pattern, because Sunday's run follows Saturday legs", () => {
     // The original programme's own admitted weak point.
     const result = buildWeekSchedule({ runDays: [MON, FRI, SUN], offDays: [WED, THU] });
@@ -75,7 +75,7 @@ describe("buildWeekSchedule — the no-run-after-legs rule", () => {
   });
 });
 
-describe("buildWeekSchedule — assignments", () => {
+describe("buildWeekSchedule - assignments", () => {
   it("never puts a run on a leg day", () => {
     const schedule = scheduleOf([MON, THU, SUN], [WED, SAT]);
     for (const day of schedule.days) {

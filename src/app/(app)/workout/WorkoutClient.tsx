@@ -12,7 +12,7 @@ import type { ProgressionResult } from "@/domain/progression";
 import type { Exercise, WorkoutSet } from "@/generated/prisma/client";
 import type { WorkoutWithSets, LastTimeForExercise } from "@/lib/workouts";
 
-type ExerciseGroup = {
+export type ExerciseGroup = {
   exercise: Exercise;
   sets: WorkoutSet[];
   lastTime: LastTimeForExercise;
@@ -46,7 +46,7 @@ export function WorkoutClient({
       await createWorkout({ date, sessionType });
       router.refresh();
     } catch {
-      toast("Couldn't start the session — try again");
+      toast("Couldn't start the session - try again");
     } finally {
       setBusy(false);
     }
@@ -59,7 +59,7 @@ export function WorkoutClient({
   );
 
   return (
-    <div className="mx-auto max-w-lg">
+    <div className="mx-auto max-w-2xl">
       <DateNav date={date} basePath="/workout" />
 
       <div className="card mb-3 p-4">
@@ -82,7 +82,7 @@ export function WorkoutClient({
         {today?.run && (
           <div className="mt-3 flex items-center gap-1.5 text-xs text-dim">
             <IconRun size={14} className="text-accent" />
-            Morning run today — easy, Zone 2.
+            Morning run today - easy, Zone 2.
           </div>
         )}
       </div>
@@ -91,11 +91,11 @@ export function WorkoutClient({
         <div className="card mb-3 p-4">
           <p className="mb-3 text-sm text-dim">
             {today?.off
-              ? "Strictly off today. Nothing to do — that's the plan working."
+              ? "Strictly off today. Nothing to do - that's the plan working."
               : today?.flex
                 ? flexChoice === "mobility"
-                  ? "Flexible day — mobility/core if you want it. Or start something:"
-                  : "Flexible day — an easy run or walk. Or start something:"
+                  ? "Flexible day - mobility/core if you want it. Or start something:"
+                  : "Flexible day - an easy run or walk. Or start something:"
                 : "No session planned today. Start one:"}
           </p>
           <div className="flex flex-wrap gap-2">
@@ -149,7 +149,7 @@ function ExerciseCard({ workoutId, group }: { workoutId: number; group: Exercise
         <div className="mb-2 rounded-lg bg-panel-2 px-3 py-2 text-xs text-dim">
           <span className="text-faint">Last time: </span>
           {lastTime.sets
-            .map((s) => (s.reps != null ? `${s.reps}${s.weightKg ? `@${s.weightKg}kg` : ""}` : "—"))
+            .map((s) => (s.reps != null ? `${s.reps}${s.weightKg ? `@${s.weightKg}kg` : ""}` : "-"))
             .join(", ")}
         </div>
       )}
@@ -181,9 +181,13 @@ function SetRow({ workoutId, set, index }: { workoutId: number; set: WorkoutSet;
   const [weightKg, setWeightKg] = useState(set.weightKg?.toString() ?? "");
   const [rir, setRir] = useState(set.rir?.toString() ?? "");
   const [completed, setCompleted] = useState(set.completed);
+  // Reps/sets are the whole point of this screen; kg is opt-in per set and
+  // starts open only when a set already has a logged weight, so existing
+  // data never gets hidden away.
+  const [showWeight, setShowWeight] = useState(set.weightKg != null);
 
   function save(partial: Record<string, unknown>) {
-    patchWorkoutSet(workoutId, set.id, partial).catch(() => toast("Couldn't save — check your connection"));
+    patchWorkoutSet(workoutId, set.id, partial).catch(() => toast("Couldn't save - check your connection"));
   }
 
   function toggleCompleted() {
@@ -202,32 +206,66 @@ function SetRow({ workoutId, set, index }: { workoutId: number; set: WorkoutSet;
       >
         {index}
       </button>
-      <input
-        type="number"
-        placeholder="reps"
+      <LabeledField
+        label="Reps"
         value={reps}
-        onChange={(e) => setReps(e.target.value)}
+        onChange={(v) => setReps(v)}
         onBlur={() => save({ reps: reps === "" ? null : Number(reps) })}
-        className="h-11 w-16 rounded-xl border border-line bg-panel-2 px-2 text-center text-sm text-ink outline-none focus:border-accent"
       />
-      <input
-        type="number"
-        placeholder="kg"
-        step="0.5"
-        value={weightKg}
-        onChange={(e) => setWeightKg(e.target.value)}
-        onBlur={() => save({ weightKg: weightKg === "" ? null : Number(weightKg) })}
-        className="h-11 w-16 rounded-xl border border-line bg-panel-2 px-2 text-center text-sm text-ink outline-none focus:border-accent"
-      />
-      <input
-        type="number"
-        placeholder="RIR"
+      <LabeledField
+        label="RIR"
         value={rir}
-        onChange={(e) => setRir(e.target.value)}
+        onChange={(v) => setRir(v)}
         onBlur={() => save({ rir: rir === "" ? null : Number(rir) })}
-        className="h-11 w-16 rounded-xl border border-line bg-panel-2 px-2 text-center text-sm text-ink outline-none focus:border-accent"
       />
+      {showWeight ? (
+        <LabeledField
+          label="Kg"
+          step="0.5"
+          value={weightKg}
+          onChange={(v) => setWeightKg(v)}
+          onBlur={() => save({ weightKg: weightKg === "" ? null : Number(weightKg) })}
+        />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setShowWeight(true)}
+          className="flex h-[3.25rem] w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-dashed border-line text-faint transition-colors hover:border-dim hover:text-dim"
+        >
+          <IconPlus size={12} />
+          <span className="micro">Kg</span>
+        </button>
+      )}
     </div>
+  );
+}
+
+function LabeledField({
+  label,
+  value,
+  onChange,
+  onBlur,
+  step,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  onBlur: () => void;
+  step?: string;
+}) {
+  return (
+    <label className="flex shrink-0 flex-col items-center gap-1">
+      <span className="micro text-faint">{label}</span>
+      <input
+        type="number"
+        step={step}
+        placeholder="-"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onBlur={onBlur}
+        className="h-11 w-14 rounded-xl border border-line bg-panel-2 px-1 text-center text-sm text-ink outline-none focus:border-accent"
+      />
+    </label>
   );
 }
 

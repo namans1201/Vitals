@@ -4,7 +4,7 @@ import { formatClock12h, parseDateParam, todayIso } from "@/lib/date";
 import { dayFromSchedule, getOrCreateWeekPlan } from "@/lib/weekPlans";
 import { TodayClient } from "./TodayClient";
 
-// Reads live DB state on every request — must never be statically prerendered.
+// Reads live DB state on every request - must never be statically prerendered.
 export const dynamic = "force-dynamic";
 
 export default async function TodayPage({

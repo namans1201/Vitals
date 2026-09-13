@@ -1,4 +1,4 @@
-/** Small fetch helpers for client components — every write goes through the
+/** Small fetch helpers for client components - every write goes through the
  * API routes in src/app/api/, keeping validation server-side in one place. */
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {

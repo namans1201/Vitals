@@ -33,7 +33,7 @@ export async function PUT(request: Request) {
   }
   const { date, runDays, offDays, flexChoice } = parsed.data;
 
-  // Refuse to store picks that can't produce a legal week — better to reject
+  // Refuse to store picks that can't produce a legal week - better to reject
   // with the reason than to persist something the rules can't schedule.
   const check = buildWeekSchedule({
     runDays: runDays as Weekday[],

@@ -14,7 +14,7 @@
  *  - Leg days spaced apart; upper days spaced apart
  *
  * A consequence worth knowing: with 3 runs, 2 off days and no running on or
- * after legs, the two leg days are fully determined — they're whatever is
+ * after legs, the two leg days are fully determined - they're whatever is
  * left once run days and off days are chosen. The only real choice left is
  * which of the three run days is the flexible one.
  */
@@ -47,7 +47,7 @@ export type DayAssignment = {
   lift: LiftSession | null;
   /** A morning run happens on this day. */
   run: boolean;
-  /** Strictly off — no lift, no run. */
+  /** Strictly off - no lift, no run. */
   off: boolean;
   /** The one flexible day: an easy run/walk, or mobility/core, your call. */
   flex: boolean;
@@ -102,7 +102,7 @@ function validateInputs(runDays: Weekday[], offDays: Weekday[]): string[] {
 
 /**
  * Work out the week. Returns either a schedule or the specific reasons the
- * chosen days can't produce a legal one — never a silently-broken plan.
+ * chosen days can't produce a legal one - never a silently-broken plan.
  */
 export function buildWeekSchedule(input: {
   runDays: Weekday[];
@@ -180,7 +180,7 @@ export function buildWeekSchedule(input: {
   return { ok: true, schedule: best!.schedule };
 }
 
-/** Three lifting days in a row is a lot of accumulated fatigue — nudge away from it. */
+/** Three lifting days in a row is a lot of accumulated fatigue - nudge away from it. */
 function consecutiveLiftPenalty(days: DayAssignment[]): number {
   let penalty = 0;
   for (const d of WEEKDAYS) {

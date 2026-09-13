@@ -1,8 +1,8 @@
-/** Heart rate zones — BUILD_SPEC.md §6.1. Pure functions, no I/O. */
+/** Heart rate zones - BUILD_SPEC.md §6.1. Pure functions, no I/O. */
 
 export type Zone = "z1" | "z2" | "z3" | "z4" | "z5";
 
-/** Tanaka et al. (2001) — more accurate than 220−age for adults. */
+/** Tanaka et al. (2001) - more accurate than 220−age for adults. */
 export const hrMax = (age: number): number => Math.round(208 - 0.7 * age);
 
 export type ZoneRanges = Record<Zone, [number, number]>;
@@ -32,7 +32,7 @@ export type RunForZoneDistribution = { avgHr: number; durationSec: number };
 
 /**
  * Seconds spent in each zone across a set of runs, classifying each run as a
- * whole by its average HR — manual logging only captures one avgHr per run,
+ * whole by its average HR - manual logging only captures one avgHr per run,
  * not a per-second HR stream, so a true intra-run breakdown isn't possible
  * yet (would need real samples from the Health Connect importer, Phase 2).
  */

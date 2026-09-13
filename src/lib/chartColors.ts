@@ -1,4 +1,4 @@
-/** Hex mirrors of the design tokens in globals.css — SVG presentation
+/** Hex mirrors of the design tokens in globals.css - SVG presentation
  * attributes (Recharts' stroke/fill props) don't reliably resolve CSS custom
  * properties, so charts need real hex values. Keep in sync with the Near-mono
  * palette in globals.css §9. */

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import { createMeal, deleteMeal } from "@/lib/api-client";
 import { IconClose, IconPlus } from "@/components/icons";
@@ -13,7 +12,7 @@ export function NutritionClient({
   date,
   proteinTargetG,
   calorieTargetKcal,
-  meals,
+  meals: initialMeals,
   presets,
   foods,
 }: {
@@ -24,10 +23,10 @@ export function NutritionClient({
   presets: MealPreset[];
   foods: FoodItem[];
 }) {
-  const router = useRouter();
   const toast = useToast();
   const [tab, setTab] = useState<Tab>("meals");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [meals, setMeals] = useState<Meal[]>(initialMeals);
 
   const totalProtein = meals.reduce((sum, m) => sum + m.proteinG, 0);
   const totalCalories = meals.reduce((sum, m) => sum + m.caloriesKcal, 0);
@@ -40,9 +39,9 @@ export function NutritionClient({
   ) {
     setBusyId(busyKey);
     try {
-      await createMeal({ date, ...payload });
+      const meal = await createMeal({ date, ...payload });
+      setMeals((prev) => [meal as Meal, ...prev]);
       toast(`+${Math.round(payload.proteinG)} g protein`);
-      router.refresh();
     } catch {
       toast("Couldn't log that");
     } finally {
@@ -56,18 +55,20 @@ export function NutritionClient({
   }
 
   async function remove(id: number) {
+    const previous = meals;
+    setMeals((prev) => prev.filter((m) => m.id !== id));
     try {
       await deleteMeal(id);
-      router.refresh();
     } catch {
+      setMeals(previous);
       toast("Couldn't delete that");
     }
   }
 
   return (
-    <div className="mx-auto max-w-lg">
+    <div className="mx-auto max-w-2xl">
       <div className="card mb-3 p-4">
-        <span className="micro-pill mb-3">Protein — target {proteinTargetG} g</span>
+        <span className="micro-pill mb-3">Protein - target {proteinTargetG} g</span>
         <div className="mb-2 h-2 overflow-hidden rounded-full bg-panel-2">
           <div
             className={`h-full rounded-full transition-[width] ${proteinPct >= 100 ? "bg-good" : "bg-caution"}`}
@@ -168,7 +169,7 @@ export function NutritionClient({
       <div className="card mb-3 p-4">
         <span className="micro-pill mb-3">Logged today</span>
         {meals.length === 0 ? (
-          <p className="py-4 text-center text-sm text-faint">Nothing yet — tap something above</p>
+          <p className="py-4 text-center text-sm text-faint">Nothing yet - tap something above</p>
         ) : (
           <div className="divide-y divide-line/60">
             {meals.map((m) => (
@@ -193,7 +194,7 @@ export function NutritionClient({
 
       <div className="rounded-xl border-l-2 border-bad bg-bad/5 px-3 py-2.5 text-xs text-dim">
         <b className="text-bad">Rest days too.</b> Same protein every day. Muscle protein synthesis
-        stays elevated 24–48h after a session, so rest days are when you actually grow.
+        stays elevated 24-48h after a session, so rest days are when you actually grow.
       </div>
     </div>
   );

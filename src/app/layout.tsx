@@ -3,7 +3,7 @@ import { Hind } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 
-// Headings — Hind Bold.
+// Headings - Hind Bold.
 const hind = Hind({
   variable: "--font-hind",
   subsets: ["latin"],
@@ -11,7 +11,7 @@ const hind = Hind({
   display: "swap",
 });
 
-// Body — Amulya Regular. Self-hosted from Fontshare so there's no runtime
+// Body - Amulya Regular. Self-hosted from Fontshare so there's no runtime
 // dependency on their CDN.
 const amulya = localFont({
   variable: "--font-amulya",

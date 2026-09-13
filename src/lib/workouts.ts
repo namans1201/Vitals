@@ -27,7 +27,7 @@ export async function createSetsFromTemplate(workoutId: number, sessionType: Ses
   for (const item of template) {
     const exercise = exerciseByName.get(item.exerciseName);
     // An exercise named in the template but missing from the library is
-    // logged and skipped, never fatal — same philosophy as the importer (§7.2).
+    // logged and skipped, never fatal - same philosophy as the importer (§7.2).
     if (!exercise) {
       console.warn(`Session template exercise not found in library: ${item.exerciseName}`);
       continue;
@@ -47,7 +47,7 @@ export async function createSetsFromTemplate(workoutId: number, sessionType: Ses
  *
  * Re-planning a week is a normal weekly action, so a session auto-created
  * under an older plan must not stick around showing the wrong thing. Empty
- * auto-created scaffolding is therefore replaced when the plan changes —
+ * auto-created scaffolding is therefore replaced when the plan changes -
  * but a session with *any* logged work is never touched, because that's real
  * data and the plan changing doesn't unmake the training that happened.
  *
@@ -70,7 +70,7 @@ export async function getOrCreateWorkoutForDate(
       existingHasLoggedWork: hasLoggedWork(existing.sets),
     });
     if (!replace) return existing;
-    // Untouched scaffolding from a previous plan — safe to discard.
+    // Untouched scaffolding from a previous plan - safe to discard.
     await prisma.workout.delete({ where: { id: existing.id } });
   }
 

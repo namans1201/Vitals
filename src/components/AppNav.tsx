@@ -35,10 +35,10 @@ export function AppNav() {
 
   return (
     <>
-      {/* Tablet & desktop — inset rounded bar in liquid glass, floating over
+      {/* Tablet & desktop - inset rounded bar in liquid glass, floating over
           the page. This is `fixed` directly on the `.glass` element itself
           (not a `sticky` ancestor with `.glass` nested inside, and not
-          `relative`) — see the note in globals.css on why that's required
+          `relative`) - see the note in globals.css on why that's required
           for `backdrop-filter` to actually composite here. A fixed element
           takes no space in flow, so NavSpacerDesktop below reserves the
           same footprint in `main`'s layout. */}
@@ -74,7 +74,7 @@ export function AppNav() {
         </form>
       </div>
 
-      {/* Phone — minimal top bar in the same glass material, nav moves to
+      {/* Phone - minimal top bar in the same glass material, nav moves to
           the bottom (thumb reach). Also `fixed` directly (not `sticky`) for
           the same compositing reason as the desktop bar above. */}
       <header className="glass-flush fixed inset-x-0 top-0 z-20 flex items-center justify-between border-b border-line/70 px-4 py-3 sm:hidden">

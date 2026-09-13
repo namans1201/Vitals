@@ -1,4 +1,4 @@
-/** Energy needs — BUILD_SPEC.md §6.2. Pure functions, no I/O. Recompute from
+/** Energy needs - BUILD_SPEC.md §6.2. Pure functions, no I/O. Recompute from
  * current weight; never hardcode a value from the spec's worked example. */
 
 /** Mifflin-St Jeor. */

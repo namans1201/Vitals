@@ -4,7 +4,7 @@ export const dateParamSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "expected YYYY-MM-DD");
 
-/** Partial update to a DailyLog's own scalar fields — everything on the
+/** Partial update to a DailyLog's own scalar fields - everything on the
  * model except its PK (`date`) and provenance (`source`/`importedAt`),
  * which only the importer (Phase 2) touches. */
 export const dailyLogPatchSchema = z.object({
@@ -22,7 +22,7 @@ export const dailyLogPatchSchema = z.object({
   ranDone: z.boolean().optional(),
   restingHr: z.number().int().min(20).max(220).nullable().optional(),
   sleepMinutes: z.number().int().min(0).max(1440).nullable().optional(),
-  /** "HH:mm" bedtime in Asia/Kolkata — converted server-side via bedtimeToUtc. */
+  /** "HH:mm" bedtime in Asia/Kolkata - converted server-side via bedtimeToUtc. */
   bedtimeLocal: z
     .string()
     .regex(/^([01]\d|2[0-3]):[0-5]\d$/)

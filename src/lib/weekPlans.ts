@@ -64,6 +64,22 @@ export async function getOrCreateWeekPlan(date: Date): Promise<WeekPlanWithSched
   };
 }
 
+/**
+ * Same schedule `getOrCreateWeekPlan` would produce, but never writes a
+ * WeekPlan row - for the calendar overview, which can be scrolled across
+ * months that were never actually planned (before the programme started,
+ * or far in the future) and shouldn't silently seed default rows for every
+ * week just because someone looked at it.
+ */
+export async function previewWeekSchedule(date: Date): Promise<WeekSchedule> {
+  const weekStart = startOfWeekMonday(date);
+  const stored = await prisma.weekPlan.findUnique({ where: { weekStart } });
+  const runDays = stored ? asWeekdays(stored.runDays) : DEFAULT_RUN_DAYS;
+  const offDays = stored ? asWeekdays(stored.offDays) : DEFAULT_OFF_DAYS;
+  const result = buildWeekSchedule({ runDays, offDays });
+  return result.ok ? result.schedule : { days: [] };
+}
+
 /** What today specifically holds, pulled out of the week's schedule. */
 export function dayFromSchedule(
   schedule: WeekSchedule,

@@ -1,9 +1,9 @@
 /**
- * Session templates — BUILD_SPEC.md §10 / 01-plan/02-full-programme.md §4.
+ * Session templates - BUILD_SPEC.md §10 / 01-plan/02-full-programme.md §4.
  *
  * Not a DB model: the §4 schema only has date-bound Workout/WorkoutSet rows,
  * and §5.8 Settings never asks for session templates to be editable in the
- * UI, so this is a static, pure-data constant — no I/O, matching the rest of
+ * UI, so this is a static, pure-data constant - no I/O, matching the rest of
  * src/domain/. Exercise names below must match `Exercise.name` in
  * prisma/seed.ts so the Workout page (Phase 1) can look up cues/rationale by
  * name.
@@ -24,15 +24,15 @@ export type SessionTemplateExercise = {
   unit?: RepUnit;
   /** True for exercises logged/loaded per arm, leg, or side. */
   perSide?: boolean;
-  /** Bulgarian split squat in Lower B, suitcase carry, etc. — nice-to-have, not core. */
+  /** Bulgarian split squat in Lower B, suitcase carry, etc. - nice-to-have, not core. */
   optional?: boolean;
 };
 
 export const SESSION_LABELS: Record<SessionType, string> = {
-  upper_a: "Upper A — push emphasis",
-  lower_a: "Lower A — squat emphasis",
-  upper_b: "Upper B — pull emphasis",
-  lower_b: "Lower B — hinge / unilateral emphasis",
+  upper_a: "Upper A - push emphasis",
+  lower_a: "Lower A - squat emphasis",
+  upper_b: "Upper B - pull emphasis",
+  lower_b: "Lower B - hinge / unilateral emphasis",
   full_body: "Full body (Week 6 reset)",
 };
 
@@ -98,7 +98,7 @@ export const SESSION_TEMPLATES: Record<SessionType, SessionTemplateExercise[]> =
   // The Week 6 reset (01-plan/01-current-plan.md, 11 Sep 2026) paused the
   // four-day split above in favour of one 30-minute session a week, built
   // around pull-ups. Re-enable the split once three consecutive Saturdays of
-  // full_body have happened — see ACTIVE_PROGRAM below.
+  // full_body have happened - see ACTIVE_PROGRAM below.
   full_body: [
     { exerciseName: "Pull-up", order: 1, targetSets: 3, repsMin: 1, repsMax: 1, unit: "reps" }, // AMRAP
     { exerciseName: "Deficit push-up", order: 2, targetSets: 3, repsMin: 10, repsMax: 15 },
@@ -110,7 +110,7 @@ export const SESSION_TEMPLATES: Record<SessionType, SessionTemplateExercise[]> =
     // exercise in the library (only Long-lever plank), so this references
     // that entry instead. Its own cue ("once a normal plank is easy") is the
     // reason to leave the load leverage as regular for this session, not the
-    // walked-out long-lever version — a Phase 1 UI/logging concern, not one
+    // walked-out long-lever version - a Phase 1 UI/logging concern, not one
     // this data file can resolve.
     { exerciseName: "Long-lever plank", order: 7, targetSets: 2, repsMin: 45, repsMax: 45, unit: "seconds" },
   ],
@@ -134,12 +134,12 @@ export const ACTIVE_PROGRAM: ActiveProgram = "full_body_reset";
 
 export type DayPlan = {
   /** What the four-day split assigns to this weekday, shown as a reference
-   * even while `full_body_reset` is active — Naman's call at Phase 1 kickoff. */
+   * even while `full_body_reset` is active - Naman's call at Phase 1 kickoff. */
   referenceSessionType: SessionType | null;
-  /** What's actually planned given ACTIVE_PROGRAM — null means no lifting
+  /** What's actually planned given ACTIVE_PROGRAM - null means no lifting
    * session is planned (during the reset, that's every day but Saturday). */
   activeSessionType: SessionType | null;
-  /** Sunday — nudge to log weekly weight/waist/BIA (01-plan/01-current-plan.md). */
+  /** Sunday - nudge to log weekly weight/waist/BIA (01-plan/01-current-plan.md). */
   isMeasurementDay: boolean;
 };
 

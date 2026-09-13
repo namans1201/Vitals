@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import { saveWeekPlan } from "@/lib/api-client";
 import { SESSION_LABELS } from "@/domain/sessionTemplates";
+import { IconRun } from "@/components/icons";
 import {
   buildWeekSchedule,
   suggestWeekOptions,
@@ -66,12 +67,12 @@ export function PlanClient({
   }
 
   return (
-    <div className="mx-auto max-w-lg">
+    <div className="mx-auto max-w-2xl">
       <div className="card mb-3 p-4">
         <span className="micro-pill mb-2">Week of {weekStartIso}</span>
         <p className="text-xs text-dim">
           Pick your <b className="text-ink">3 run days</b> and{" "}
-          <b className="text-ink">2 off days</b>. The four lifting sessions get placed for you —
+          <b className="text-ink">2 off days</b>. The four lifting sessions get placed for you -
           never a run on legs, never a run the day after legs.
         </p>
       </div>
@@ -98,11 +99,11 @@ export function PlanClient({
                 </div>
                 <div className="min-w-0 flex-1 truncate text-right text-xs text-dim">
                   {assigned?.lift
-                    ? SESSION_LABELS[assigned.lift].split(" — ")[0]
+                    ? SESSION_LABELS[assigned.lift].split(" - ")[0]
                     : assigned?.flex
                       ? flex === "run"
-                        ? "Flexible — easy run/walk"
-                        : "Flexible — mobility/core"
+                        ? "Flexible - easy run/walk"
+                        : "Flexible - mobility/core"
                       : assigned?.off
                         ? "Rest"
                         : ""}
@@ -156,17 +157,26 @@ export function PlanClient({
               }}
               className="w-full rounded-xl border border-line bg-panel-2 p-2.5 text-left transition-colors hover:bg-line/60"
             >
-              <div className="text-xs text-dim">
-                {option.schedule.days
-                  .map((d) => {
-                    const label = d.lift
-                      ? SESSION_LABELS[d.lift].split(" — ")[0].replace("Upper ", "U").replace("Lower ", "L")
-                      : d.off
-                        ? "rest"
-                        : "flex";
-                    return `${WEEKDAY_NAMES[d.weekday].slice(0, 3)} ${label}${d.run ? "+run" : ""}`;
-                  })
-                  .join(" · ")}
+              <div className="grid grid-cols-7 gap-1">
+                {option.schedule.days.map((d) => {
+                  const label = d.lift
+                    ? SESSION_LABELS[d.lift].split(" - ")[0].replace("Upper ", "U").replace("Lower ", "L")
+                    : d.off
+                      ? "Rest"
+                      : "Flex";
+                  return (
+                    <div
+                      key={d.weekday}
+                      className="flex flex-col items-center gap-0.5 rounded-lg bg-panel px-0.5 py-1.5"
+                    >
+                      <span className="micro text-faint">{WEEKDAY_NAMES[d.weekday].slice(0, 1)}</span>
+                      <span className="text-[10.5px] font-medium leading-none text-ink">{label}</span>
+                      <span className="flex h-2.5 items-center">
+                        {d.run && <IconRun size={10} className="text-accent" />}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             </button>
           ))}

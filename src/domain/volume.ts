@@ -1,4 +1,4 @@
-/** Weekly set volume per muscle group — BUILD_SPEC.md §6.3. Pure functions, no I/O. */
+/** Weekly set volume per muscle group - BUILD_SPEC.md §6.3. Pure functions, no I/O. */
 
 export const VOLUME_BAND = { min: 10, max: 20 } as const;
 
@@ -31,7 +31,7 @@ export type CountableSet = {
  * Count a completed set once against its exercise's muscleGroup. A
  * WorkoutSet row already represents one full set regardless of whether the
  * exercise is unilateral (weight/reps aren't tracked per side in the
- * schema) — so unilateral exercises count once per set, not once per limb,
+ * schema) - so unilateral exercises count once per set, not once per limb,
  * simply by never inflating the row count for them upstream of this
  * function. There is no separate multiplier to apply here.
  */

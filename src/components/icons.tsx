@@ -1,5 +1,5 @@
 /**
- * SVG icon set. No emoji anywhere in the UI — these are stroked outline
+ * SVG icon set. No emoji anywhere in the UI - these are stroked outline
  * icons sized to the current font-size and inheriting currentColor, so they
  * sit correctly next to text in any palette.
  */
@@ -135,6 +135,24 @@ export function IconLogout({ className, size = 20 }: IconProps) {
   return (
     <svg {...base(size, className)}>
       <path d="M15 4.5h3a2 2 0 012 2v11a2 2 0 01-2 2h-3M10 16l-4-4 4-4M6 12h9" />
+    </svg>
+  );
+}
+
+export function IconCalendar({ className, size = 20 }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <rect x="3" y="4.5" width="18" height="16" rx="3" />
+      <path d="M3 9.5h18M8 2.5v4M16 2.5v4" />
+      <rect x="7" y="12.5" width="3" height="3" rx="0.5" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function IconChevronDown({ className, size = 20 }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M5 8.5l7 7 7-7" />
     </svg>
   );
 }

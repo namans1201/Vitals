@@ -42,7 +42,7 @@ export function TodayClient({
     setChecklist(next);
     const item = next.find((c) => c.key === key)!;
     patchDay(date, { checklist: [{ key, done: item.done }] }).catch(() =>
-      toast("Couldn't save — check your connection"),
+      toast("Couldn't save - check your connection"),
     );
   }
 
@@ -51,13 +51,13 @@ export function TodayClient({
     const nextCells = currentCells === n ? n - 1 : n;
     const nextMl = Math.max(0, nextCells) * WATER_ML_PER_CELL;
     setWaterMl(nextMl);
-    patchDay(date, { waterMl: nextMl }).catch(() => toast("Couldn't save — check your connection"));
+    patchDay(date, { waterMl: nextMl }).catch(() => toast("Couldn't save - check your connection"));
   }
 
   function saveNotes() {
     patchDay(date, { notes: notes.trim() === "" ? null : notes })
       .then(() => toast("Saved"))
-      .catch(() => toast("Couldn't save — check your connection"));
+      .catch(() => toast("Couldn't save - check your connection"));
   }
 
   const waterCells = Math.round(waterMl / WATER_ML_PER_CELL);
@@ -66,7 +66,7 @@ export function TodayClient({
   const proteinPct = Math.min(100, (proteinSoFar / proteinTargetG) * 100);
 
   return (
-    <div className="mx-auto max-w-lg">
+    <div className="mx-auto max-w-2xl">
       <DateNav date={date} basePath="/" />
 
       {weekProblems.length > 0 && (
@@ -85,7 +85,7 @@ export function TodayClient({
         ) : (
           <div className="space-y-2">
             {/* A run and the flex day are the same slot when flex is chosen as
-                a run — show one unified row with the toggle, not two. */}
+                a run - show one unified row with the toggle, not two. */}
             {today.run && !today.flex && (
               <PlanRowRun date={date} label="Morning" initialDone={snapshot.ranDone} />
             )}
@@ -94,7 +94,7 @@ export function TodayClient({
             )}
             {today.flex &&
               (flexChoice === "mobility" ? (
-                <PlanRow Icon={IconRest} tone="dim" label="Flexible" value="Mobility / core — your call" />
+                <PlanRow Icon={IconRest} tone="dim" label="Flexible" value="Mobility / core - your call" />
               ) : (
                 <PlanRowRun date={date} label="Flexible" initialDone={snapshot.ranDone} />
               ))}
@@ -233,7 +233,7 @@ function PlanRow({
   );
 }
 
-/** The run row on Today — no duration/distance/HR fields, the watch owns
+/** The run row on Today - no duration/distance/HR fields, the watch owns
  * those once the importer exists. This is only "did it happen", exactly
  * like ticking a workout set. */
 function PlanRowRun({
@@ -251,7 +251,7 @@ function PlanRowRun({
   function toggle() {
     const next = !done;
     setDone(next);
-    patchDay(date, { ranDone: next }).catch(() => toast("Couldn't save — check your connection"));
+    patchDay(date, { ranDone: next }).catch(() => toast("Couldn't save - check your connection"));
   }
 
   return (
@@ -265,7 +265,7 @@ function PlanRowRun({
       </span>
       <span className="w-16 shrink-0 micro text-faint">{label}</span>
       <span className={`flex-1 ${done ? "font-medium text-good" : "text-accent"}`}>
-        {done ? "Run done" : "Run — easy, Zone 2"}
+        {done ? "Run done" : "Run - easy, Zone 2"}
       </span>
       <span
         className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-colors ${

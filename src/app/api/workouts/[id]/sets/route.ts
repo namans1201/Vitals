@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { addWorkoutSetSchema } from "@/lib/validation";
 
-/** Add an exercise (from the library) to an existing session — the
+/** Add an exercise (from the library) to an existing session - the
  * ad-hoc/"custom session" path from BUILD_SPEC.md §5.2, resolved to pick
  * from the Exercise library rather than a freeform name. */
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {

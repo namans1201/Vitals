@@ -75,5 +75,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ da
     );
   }
 
-  return NextResponse.json(await getDaySnapshot(date));
+  // The client already applies this write optimistically and never reads
+  // the body (see patchDay() in lib/api-client.ts) - rebuilding the full
+  // 5-query snapshot here just to throw it away made every checklist/water
+  // tap pay for it, so this is intentionally the bare confirmation.
+  return NextResponse.json({ ok: true });
 }

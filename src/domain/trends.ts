@@ -1,4 +1,4 @@
-/** Trends and the recomposition signal — BUILD_SPEC.md §6.5. Pure functions, no I/O. */
+/** Trends and the recomposition signal - BUILD_SPEC.md §6.5. Pure functions, no I/O. */
 
 export type SeriesPoint = { date: Date; value: number };
 
@@ -20,7 +20,7 @@ export type LinearTrendResult = {
   /** Value change per day. */
   slope: number;
   direction: TrendDirection;
-  /** Value change per 7 days — the more human-legible unit. */
+  /** Value change per 7 days - the more human-legible unit. */
   perWeek: number;
 };
 
@@ -69,11 +69,11 @@ export type RecompositionSignal =
   | "losing_fat"
   | "insufficient_data";
 
-/** BIA is noisy — a two-point "trend" is meaningless. Never draw a
+/** BIA is noisy - a two-point "trend" is meaningless. Never draw a
  * conclusion from fewer than this many weekly readings. */
 export const MIN_RECOMPOSITION_POINTS = 4;
 
-/** "Roughly flat" weight, in kg/week — used only to confirm a genuine
+/** "Roughly flat" weight, in kg/week - used only to confirm a genuine
  * recomposition (fat down, muscle up, weight not swinging either way). */
 const WEIGHT_FLAT_THRESHOLD_KG_PER_WEEK = 0.3;
 
@@ -99,6 +99,6 @@ export const recompositionSignal = (input: RecompositionInput): RecompositionSig
   if (bodyFatDirection === "down") return "losing_fat";
 
   // Both flat, or a recomposing-shaped trend riding on a weight swing too
-  // large to call "roughly flat" — no confident signal either way.
+  // large to call "roughly flat" - no confident signal either way.
   return "insufficient_data";
 };

@@ -3,9 +3,9 @@ import { parseDateParam, todayIso } from "@/lib/date";
 import { dayFromSchedule, getOrCreateWeekPlan } from "@/lib/weekPlans";
 import { getLastTimeForExercise, getOrCreateWorkoutForDate } from "@/lib/workouts";
 import { progression } from "@/domain/progression";
-import { WorkoutClient } from "./WorkoutClient";
+import { WorkoutClient, type ExerciseGroup } from "./WorkoutClient";
 
-// Reads/writes live DB state on every request — must never be statically prerendered.
+// Reads/writes live DB state on every request - must never be statically prerendered.
 export const dynamic = "force-dynamic";
 
 export default async function WorkoutPage({
@@ -21,16 +21,26 @@ export default async function WorkoutPage({
   const today = dayFromSchedule(weekPlan.schedule, date);
   const workout = await getOrCreateWorkoutForDate(date, today?.lift ?? null);
 
-  const exerciseGroups = [];
+  let exerciseGroups: ExerciseGroup[] = [];
   if (workout) {
     const seenExerciseIds = new Set<number>();
-    for (const set of workout.sets) {
-      if (seenExerciseIds.has(set.exerciseId)) continue;
+    const uniqueSets = workout.sets.filter((set) => {
+      if (seenExerciseIds.has(set.exerciseId)) return false;
       seenExerciseIds.add(set.exerciseId);
+      return true;
+    });
 
+    // One exercise's last-time lookup doesn't depend on another's, so fetch
+    // them all in parallel instead of serially awaiting inside the loop -
+    // with 4-8 exercises per session this was 4-8 sequential DB round-trips.
+    const lastTimes = await Promise.all(
+      uniqueSets.map((set) => getLastTimeForExercise(set.exerciseId, date)),
+    );
+
+    exerciseGroups = uniqueSets.map((set, i) => {
       const sets = workout.sets.filter((s) => s.exerciseId === set.exerciseId);
       const exercise = set.exercise;
-      const lastTime = await getLastTimeForExercise(set.exerciseId, date);
+      const lastTime = lastTimes[i];
       const loggedLastSets = (lastTime?.sets ?? []).filter(
         (s): s is { reps: number; weightKg: number | null; rir: number | null } => s.reps !== null,
       );
@@ -40,8 +50,8 @@ export default async function WorkoutPage({
         repsMax: exercise.defaultRepsMax,
       });
 
-      exerciseGroups.push({ exercise, sets, lastTime, progression: progressionResult });
-    }
+      return { exercise, sets, lastTime, progression: progressionResult };
+    });
   }
 
   const allExercises = await prisma.exercise.findMany({ orderBy: { name: "asc" } });

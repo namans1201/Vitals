@@ -9,7 +9,7 @@ export default function AppLayout({
       <div className="flex min-h-full flex-1 flex-col">
         <AppNav />
         {/* Both top bars in AppNav are `position: fixed` (required for their
-            liquid-glass backdrop-filter to composite — see globals.css), so
+            liquid-glass backdrop-filter to composite - see globals.css), so
             they take no space in normal flow. `main` compensates with
             explicit top padding sized to each bar's real rendered height
             plus its own gap, measured against the live layout rather than

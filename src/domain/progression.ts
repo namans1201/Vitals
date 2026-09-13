@@ -1,4 +1,4 @@
-/** Double progression — BUILD_SPEC.md §6.4. Pure functions, no I/O. */
+/** Double progression - BUILD_SPEC.md §6.4. Pure functions, no I/O. */
 
 export const PROGRESSION_LEVERS = [
   "add_rep",
@@ -31,7 +31,7 @@ export type ProgressionResult = {
 /**
  * The lever to suggest after `previous` in the fixed order §6.4 defines.
  * `previous` is whatever lever this exercise last progressed on (null the
- * first time, or once it has regressed/held since) — the caller is
+ * first time, or once it has regressed/held since) - the caller is
  * responsible for tracking that; this function only knows the sequence.
  */
 export const nextLever = (previous: Lever | null): Lever => {
@@ -43,9 +43,9 @@ export const nextLever = (previous: Lever | null): Lever => {
 function messageFor(lever: Lever): string {
   switch (lever) {
     case "add_rep":
-      return "Hit the top of the range with reps still in reserve — add a rep next time.";
+      return "Hit the top of the range with reps still in reserve - add a rep next time.";
     case "slow_eccentric":
-      return "Still cruising at the top of the range — slow the lowering phase (3s → 4s).";
+      return "Still cruising at the top of the range - slow the lowering phase (3s → 4s).";
     case "add_pause":
       return "Add a pause at the hardest point of the rep.";
     case "add_set":
@@ -55,7 +55,7 @@ function messageFor(lever: Lever): string {
     case "add_band":
       return "Add band resistance.";
     case "add_load":
-      return "Add load — more weight next session.";
+      return "Add load - more weight next session.";
   }
 }
 
@@ -69,7 +69,7 @@ export const progression = (
     return {
       verdict: "hold",
       lever: null,
-      message: "No sets logged last time — nothing to compare against yet.",
+      message: "No sets logged last time - nothing to compare against yet.",
     };
   }
 
@@ -78,11 +78,11 @@ export const progression = (
     return {
       verdict: "regress",
       lever: null,
-      message: "A set fell below the target rep range — reduce load or use an easier variation.",
+      message: "A set fell below the target rep range - reduce load or use an easier variation.",
     };
   }
 
-  // RIR must be explicitly logged and >= 2 — an unlogged RIR can't confirm
+  // RIR must be explicitly logged and >= 2 - an unlogged RIR can't confirm
   // reps in reserve, so it doesn't count as a pass.
   const allAtMaxWithReserve = sets.every((s) => s.reps >= repsMax && s.rir !== null && s.rir >= 2);
   if (allAtMaxWithReserve) {
@@ -93,6 +93,6 @@ export const progression = (
   return {
     verdict: "hold",
     lever: null,
-    message: "Right in the target range — repeat the same weight and reps.",
+    message: "Right in the target range - repeat the same weight and reps.",
   };
 };

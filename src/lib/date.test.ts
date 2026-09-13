@@ -17,7 +17,7 @@ describe("parseDateParam / toDateParam", () => {
   });
 });
 
-describe("bedtimeToUtc — the midnight-boundary gotcha (§11.1)", () => {
+describe("bedtimeToUtc - the midnight-boundary gotcha (§11.1)", () => {
   it("assigns an evening bedtime to the night before the wake date", () => {
     // 11 PM IST on 12 Sep, viewed from the "13 Sep" Today page (wake date).
     const result = bedtimeToUtc("2026-09-13", "23:00");

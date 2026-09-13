@@ -17,8 +17,8 @@ export async function middleware(request: NextRequest) {
 
 // Everything except the login page/action and static assets requires the
 // session cookie. Static files (logo, favicons, fonts, …) must stay excluded
-// by extension, not by an ever-growing filename list — Next's own docs
-// recommend exactly this pattern — because /login itself needs its logo to
+// by extension, not by an ever-growing filename list - Next's own docs
+// recommend exactly this pattern - because /login itself needs its logo to
 // load while logged out, and it was 307-redirecting to /login?from=/logo.png
 // (which an <img> tag can't decode) before this was widened.
 // /api/import (Phase 4) will authenticate separately via a bearer token and

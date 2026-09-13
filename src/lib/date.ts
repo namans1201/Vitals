@@ -1,7 +1,7 @@
 /**
- * Date/timezone helpers — BUILD_SPEC.md §11.1. Health Connect timestamps are
+ * Date/timezone helpers - BUILD_SPEC.md §11.1. Health Connect timestamps are
  * epoch ms UTC; Naman is UTC+05:30. Every calendar-date decision must happen
- * in Asia/Kolkata, not server-local time or raw UTC — this is called out as
+ * in Asia/Kolkata, not server-local time or raw UTC - this is called out as
  * the single most likely bug in the whole build.
  */
 import { TZDate } from "@date-fns/tz";
@@ -36,7 +36,7 @@ export function toDateParam(date: Date): string {
   return format(date, "yyyy-MM-dd");
 }
 
-/** Render a UTC instant as an "HH:mm" clock time in Asia/Kolkata — the
+/** Render a UTC instant as an "HH:mm" clock time in Asia/Kolkata - the
  * inverse of the bedtime half of `bedtimeToUtc`, for displaying it back. */
 export function formatTimeInTz(date: Date, timezone: string = APP_TIMEZONE): string {
   return format(new TZDate(date, timezone), "HH:mm");
@@ -64,7 +64,7 @@ export function formatClock12h(hhmm: string): string {
 }
 
 /**
- * Combine a "YYYY-MM-DD" calendar date (the day being viewed/logged — i.e.
+ * Combine a "YYYY-MM-DD" calendar date (the day being viewed/logged - i.e.
  * the wake date) with a "HH:mm" bedtime, both in Asia/Kolkata, into the UTC
  * instant it represents. An evening bedtime (>= noon) belongs to the night
  * *before* the wake date; a past-midnight bedtime (< noon) belongs to the

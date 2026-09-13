@@ -28,8 +28,8 @@ describe("weeklySetsByMuscle", () => {
     expect(weeklySetsByMuscle(sets, from, to).chest).toBe(1);
   });
 
-  it("counts a unilateral exercise's sets the same as any other — once per row", () => {
-    // Bulgarian split squat, 3 sets logged (each set implicitly both legs) —
+  it("counts a unilateral exercise's sets the same as any other - once per row", () => {
+    // Bulgarian split squat, 3 sets logged (each set implicitly both legs) -
     // must count as 3, not 6.
     const sets = [set("quads", "2026-09-08"), set("quads", "2026-09-08"), set("quads", "2026-09-08")];
     expect(weeklySetsByMuscle(sets, from, to).quads).toBe(3);
