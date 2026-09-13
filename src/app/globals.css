@@ -97,41 +97,47 @@ h4 {
  * soft ambient shadow rather than a hard border). Shape (pill / rounded
  * rect) comes from whatever border-radius the component sets; this class
  * only supplies the material.
+ *
+ * The fill is a genuinely mid-grey, not a translucent white — against a
+ * near-white page (this app's whole palette lives in #F4F4F5–#FFFFFF),
+ * translucent white composites to something visually identical to the
+ * page itself, and the "glass" simply disappears. A grey base still lets
+ * real content show through blurred when it scrolls underneath, while
+ * staying visibly a distinct floating panel even at rest.
  */
 .glass {
   position: relative;
-  background: color-mix(in srgb, var(--panel) 58%, transparent);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid color-mix(in srgb, white 75%, var(--line) 25%);
+  background: rgba(142, 142, 148, 0.24);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.8);
   box-shadow:
-    inset 0 1px 0 color-mix(in srgb, white 85%, transparent),
-    0 1px 1px rgb(17 17 17 / 0.04),
-    0 16px 40px rgb(17 17 17 / 0.10);
+    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    inset 0 -1px 0 rgba(17, 17, 17, 0.05),
+    0 2px 6px rgba(17, 17, 17, 0.06),
+    0 22px 48px rgba(17, 17, 17, 0.16);
 }
 
 /* The specular sheen along the top — a soft light-catching highlight that
- * fades out by the vertical midpoint, layered above the blur. */
+ * fades out by the vertical midpoint, layered above the blur. Plain alpha,
+ * no blend mode: over the grey fill above (not white-on-white) a normal
+ * gradient already reads clearly. */
 .glass::before {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, white 40%, transparent) 0%,
-    transparent 55%
-  );
-  mix-blend-mode: overlay;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 55%);
 }
 
 /* Flat variant for edges that sit flush against the viewport (the mobile
- * top/bottom bars) — same material, no floating shadow or rim. */
+ * top/bottom bars) — same grey-glass fill and blur, no floating shadow or
+ * rim (the component's own border-top/bottom supplies the edge). */
 .glass-flush {
-  background: color-mix(in srgb, var(--panel) 68%, transparent);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(142, 142, 148, 0.22);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
 }
 
 @media (prefers-reduced-motion: reduce) {

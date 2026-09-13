@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logout } from "@/app/(auth)/login/actions";
 import {
-  IconCheck,
   IconFood,
   IconLogout,
   IconToday,
@@ -22,9 +21,10 @@ const NAV_ITEMS = [
 function Wordmark() {
   return (
     <Link href="/" className="flex shrink-0 items-center gap-2">
-      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-white">
-        <IconCheck size={15} />
-      </span>
+      {/* eslint-disable-next-line @next/next/no-img-element -- next/image's
+          optimizer self-fetch fails in this preview environment; a fixed
+          28px mark gets nothing from optimization anyway. */}
+      <img src="/logo.png" alt="" width={28} height={28} className="shrink-0" />
       <span className="font-heading text-base font-bold text-ink">Naman</span>
     </Link>
   );

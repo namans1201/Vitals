@@ -1,5 +1,4 @@
 import { login } from "./actions";
-import { IconCheck } from "@/components/icons";
 
 export default async function LoginPage({
   searchParams,
@@ -12,9 +11,9 @@ export default async function LoginPage({
     <main className="flex min-h-full flex-1 items-center justify-center px-4">
       <form action={login} className="card w-full max-w-sm p-6">
         <div className="mb-1 flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-white">
-            <IconCheck size={17} />
-          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element -- next/image's
+              optimizer self-fetch fails in this preview environment. */}
+          <img src="/logo.png" alt="" width={34} height={34} className="shrink-0" />
           <h1 className="font-heading text-lg font-bold text-ink">Naman</h1>
         </div>
         <p className="text-sm text-dim">Enter the password to continue.</p>
