@@ -80,32 +80,82 @@ export function ExerciseFormGuideModal({ exerciseName, onClose }: { exerciseName
   );
 }
 
+type MediaView = "anim" | "still";
+
+/** Source art is 1536x1024; scripts/optimize-exercise-media.mjs emits the
+ * 768px WebP pair the app actually ships. Both are always offered - the
+ * animation shows the movement, the still is easier to study mid-set. */
+const MEDIA_SIZE = { width: 768, height: 512 };
+
 function MediaTab({ exerciseName }: { exerciseName: string }) {
   const slug = slugify(exerciseName);
-  const [stage, setStage] = useState<"gif" | "png" | "none">("gif");
+  const [view, setView] = useState<MediaView>("anim");
+  const [failed, setFailed] = useState<Record<MediaView, boolean>>({ anim: false, still: false });
 
-  if (stage === "none") {
+  if (failed.anim && failed.still) {
     return (
       <div className="rounded-xl bg-panel-2 p-4 text-center text-xs text-faint">
-        No image yet. Generate one from EXERCISE_IMAGE_PROMPTS.md (or the GIF
-        version from EXERCISE_GIF_PROMPTS.md) and save it as{" "}
-        <code className="text-dim">public/exercises/{slug}.png</code> (or{" "}
-        <code className="text-dim">.gif</code>) to see it here.
+        No media yet. Generate it from EXERCISE_IMAGE_PROMPTS.md /
+        EXERCISE_GIF_PROMPTS.md, drop the PNG and GIF into{" "}
+        <code className="text-dim">public/exercises/</code>, then run{" "}
+        <code className="text-dim">node scripts/optimize-exercise-media.mjs</code>.
       </div>
     );
   }
 
+  // If the preferred view is missing, fall through to whichever one loaded.
+  const active: MediaView = failed[view] ? (view === "anim" ? "still" : "anim") : view;
+  const src = active === "anim" ? `/exercises/${slug}-anim.webp` : `/exercises/${slug}.webp`;
+
   return (
-    // These are user-added local files of unknown dimensions, checked for
-    // existence via an onError fallback chain - next/image needs known
-    // dimensions or a remote loader, neither of which applies here.
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={`/exercises/${slug}.${stage}`}
-      alt={`${exerciseName} form`}
-      className="w-full rounded-xl bg-panel-2 object-contain"
-      onError={() => setStage(stage === "gif" ? "png" : "none")}
-    />
+    <div className="space-y-2">
+      <div className="overflow-hidden rounded-xl bg-panel-2">
+        {/* Already-optimised local WebP at a known size - next/image would
+            only re-encode what this pipeline has already done. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          key={active}
+          src={src}
+          alt={`${exerciseName} - ${active === "anim" ? "movement" : "position"}`}
+          width={MEDIA_SIZE.width}
+          height={MEDIA_SIZE.height}
+          className="w-full object-contain"
+          onError={() => setFailed((f) => ({ ...f, [active]: true }))}
+        />
+      </div>
+
+      {!failed.anim && !failed.still && (
+        <div className="flex gap-1 rounded-full border border-line bg-panel-2 p-0.5">
+          <MediaToggle active={active === "anim"} onClick={() => setView("anim")}>
+            Animated
+          </MediaToggle>
+          <MediaToggle active={active === "still"} onClick={() => setView("still")}>
+            Still
+          </MediaToggle>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MediaToggle({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`h-7 flex-1 rounded-full text-[11px] font-medium transition-colors ${
+        active ? "bg-accent text-white" : "text-dim hover:text-ink"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 

@@ -12,6 +12,7 @@
     "db:migrate": "prisma migrate dev",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
+    "media:optimize": "node scripts/optimize-exercise-media.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -39,6 +40,7 @@
     "eslint": "^9",
     "eslint-config-next": "^15.5.25",
     "prisma": "7.10.0",
+    "sharp": "0.35.4",
     "tailwindcss": "^4",
     "tsx": "^4.23.13",
     "typescript": "^5",

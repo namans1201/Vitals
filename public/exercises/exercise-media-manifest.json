@@ -1,6 +1,12 @@
 {
-  "generatedAt": "2026-09-13T18:23:59.0052058Z",
+  "generatedAt": "2026-09-13T20:41:43.893Z",
   "count": 91,
+  "canvas": {
+    "width": 1536,
+    "height": 1024,
+    "gifFrameCount": 3,
+    "fitMode": "contain with centered white padding"
+  },
   "exercises": [
     {
       "name": "Inverted row",
@@ -868,8 +874,8 @@
       "gifPath": "/exercises/russian-twist.gif",
       "imagePrompt": "* A stylized anatomical fitness illustration: a grayscale, semi-transparent-skin figure seated on the floor with visible muscle structure, torso leaned back, feet lifted, holding a weight with both hands, plain white background, two-panel side-by-side sequence. Left panel: the figure holds the weight rotated to one side, tapping near the hip. Right panel: the same figure with the torso rotated fully to the opposite side, weight tapping near the other hip. The obliques are highlighted in solid red/orange against the grayscale body. Camera: clean three-quarter angle showing the balanced seated position and the torso-rotation arc.",
       "gifPrompt": "* A stylized anatomical fitness illustration animated as a short seamless loop (2-4 seconds): a grayscale, semi-transparent-skin figure seated on the floor with visible muscle structure, plain white background, torso leaned back, feet lifted, holding a weight with both hands. The animation starts with the weight rotated to one side near the hip; the figure smoothly rotates the torso to the opposite side, tapping the weight near the other hip, then rotates back to the starting side — seamless loop, ends exactly where it begins. The obliques are highlighted in solid red/orange throughout. Camera: clean three-quarter angle showing the balanced seated position and the torso-rotation arc.",
-      "imageReady": false,
-      "gifReady": false
+      "imageReady": true,
+      "gifReady": true
     },
     {
       "name": "Running",
@@ -879,8 +885,8 @@
       "gifPath": "/exercises/running.gif",
       "imagePrompt": "* A stylized anatomical fitness illustration: a grayscale, semi-transparent-skin figure in mid-stride with visible muscle structure, plain white background, two-panel side-by-side sequence showing two phases of the same running stride. Left panel: the figure's rear leg is extended straight back at push-off, front knee driven high. Right panel: the same figure a moment later, the previously trailing leg now driven forward and high, arms swinging in opposition. The legs are highlighted in solid red/orange against the grayscale body. Camera: clean side angle showing the full stride cycle.",
       "gifPrompt": "* A stylized anatomical fitness illustration animated as a short seamless loop (2-4 seconds): a grayscale, semi-transparent-skin figure in mid-stride with visible muscle structure, plain white background. The animation starts with the rear leg extended straight back at push-off, front knee driven high; the figure smoothly cycles through the running stride, arms swinging in opposition, and returns to the same push-off position it started from — seamless loop, ends exactly where it begins. The legs are highlighted in solid red/orange throughout. Camera: clean side angle showing the full stride cycle.",
-      "imageReady": false,
-      "gifReady": false
+      "imageReady": true,
+      "gifReady": true
     },
     {
       "name": "Burpee",
@@ -890,8 +896,8 @@
       "gifPath": "/exercises/burpee.gif",
       "imagePrompt": "* A stylized anatomical fitness illustration: a grayscale, semi-transparent-skin figure with visible muscle structure, plain white background, two-panel side-by-side sequence. Left panel: the figure holds a low plank position, having just kicked back from the squat, body straight. Right panel: the same figure airborne in a jump, arms overhead, legs extended, having just driven up from the squat. The full body (legs, chest, and core) is highlighted in solid red/orange against the desaturated body. Camera: clean side angle showing both the plank and the explosive jump extension.",
       "gifPrompt": "* A stylized anatomical fitness illustration animated as a short seamless loop (2-4 seconds): a grayscale, semi-transparent-skin figure with visible muscle structure, plain white background. The animation starts standing tall; the figure smoothly drops into a squat, kicks back into a plank, jumps the feet back in, then explodes upward into a jump with arms overhead, landing back in the starting standing position — seamless loop, ends exactly where it begins. The full body (legs, chest, and core) is highlighted in solid red/orange throughout. Camera: clean side angle showing the full squat-plank-jump sequence.",
-      "imageReady": false,
-      "gifReady": false
+      "imageReady": true,
+      "gifReady": true
     },
     {
       "name": "Rowing machine",
@@ -901,8 +907,8 @@
       "gifPath": "/exercises/rowing-machine.gif",
       "imagePrompt": "* A stylized anatomical fitness illustration: a grayscale, semi-transparent-skin figure seated on a rowing machine with visible muscle structure, feet strapped to the footplates, gripping the handle, plain white background, two-panel side-by-side sequence. Left panel: the figure sits at the catch position, knees bent close to the chest, arms extended toward the flywheel. Right panel: the same figure at the finish position, legs extended, torso leaned back slightly, handle pulled to the torso. The legs, back, and arms are highlighted in solid red/orange against the grayscale body. Camera: clean side angle showing the rail, the seat travel, and the full drive sequence.",
       "gifPrompt": "* A stylized anatomical fitness illustration animated as a short seamless loop (2-4 seconds): a grayscale, semi-transparent-skin figure seated on a rowing machine with visible muscle structure, plain white background, feet strapped to the footplates. The animation starts at the catch position, knees bent close to the chest, arms extended toward the flywheel; the figure smoothly drives through the legs, leans back, and pulls the handle to the torso at the finish, pauses briefly, then reverses back to the starting catch position — seamless loop, ends exactly where it begins. The legs, back, and arms are highlighted in solid red/orange throughout. Camera: clean side angle showing the rail, the seat travel, and the full drive sequence.",
-      "imageReady": false,
-      "gifReady": false
+      "imageReady": true,
+      "gifReady": true
     },
     {
       "name": "Cycling",
@@ -912,8 +918,8 @@
       "gifPath": "/exercises/cycling.gif",
       "imagePrompt": "* A stylized anatomical fitness illustration: a grayscale, semi-transparent-skin figure seated on a stationary bike with visible muscle structure, hands on the handlebars, plain white background, two-panel side-by-side sequence. Left panel: the figure's pedaling leg is bent high at the top of the pedal stroke. Right panel: the same figure with that leg extended low and driving down through the pedal at the bottom of the stroke. The quadriceps and calves are highlighted in solid red/orange against the desaturated body. Camera: clean side angle showing the bike frame and the full pedal-stroke range.",
       "gifPrompt": "* A stylized anatomical fitness illustration animated as a short seamless loop (2-4 seconds): a grayscale, semi-transparent-skin figure seated on a stationary bike with visible muscle structure, plain white background, hands on the handlebars. The animation starts with the pedaling leg bent high at the top of the stroke; the figure smoothly drives that leg down through a full pedal rotation and back up to the starting top position — seamless loop, ends exactly where it begins. The quadriceps and calves are highlighted in solid red/orange throughout. Camera: clean side angle showing the bike frame and the full pedal-stroke range.",
-      "imageReady": false,
-      "gifReady": false
+      "imageReady": true,
+      "gifReady": true
     },
     {
       "name": "Box jump",
@@ -923,8 +929,8 @@
       "gifPath": "/exercises/box-jump.gif",
       "imagePrompt": "* A stylized anatomical fitness illustration: a grayscale, semi-transparent-skin figure with visible muscle structure, facing a plyo box, plain white background, two-panel side-by-side sequence. Left panel: the figure crouches low on the ground in front of the box, arms swung back, knees bent to load the jump. Right panel: the same figure landed softly on top of the box, knees bent to absorb impact, arms forward for balance. The quadriceps and glutes are highlighted in solid red/orange against the grayscale body. Camera: clean side angle showing the box height and the jump trajectory.",
       "gifPrompt": "* A stylized anatomical fitness illustration animated as a short seamless loop (2-4 seconds): a grayscale, semi-transparent-skin figure with visible muscle structure, plain white background, facing a plyo box. The animation starts crouched low in front of the box, arms swung back; the figure smoothly explodes upward, jumping onto the box and landing softly with bent knees, pauses briefly, then steps back down to the starting crouched position — seamless loop, ends exactly where it begins. The quadriceps and glutes are highlighted in solid red/orange throughout. Camera: clean side angle showing the box height and the jump trajectory.",
-      "imageReady": false,
-      "gifReady": false
+      "imageReady": true,
+      "gifReady": true
     },
     {
       "name": "Battle ropes",
@@ -934,8 +940,8 @@
       "gifPath": "/exercises/battle-ropes.gif",
       "imagePrompt": "* A stylized anatomical fitness illustration: a grayscale, semi-transparent-skin figure with visible muscle structure, holding one end of a thick battle rope in each hand, the rope anchored to a fixed point in front, plain white background, two-panel side-by-side sequence. Left panel: the figure has one arm raised high with the rope whipped upward and the other arm low. Right panel: the same figure with the arm positions reversed, the previously high arm now driven down, creating an alternating wave. The shoulders and arms are highlighted in solid red/orange against the desaturated body. Camera: clean three-quarter angle showing the rope waves and the alternating arm action.",
       "gifPrompt": "* A stylized anatomical fitness illustration animated as a short seamless loop (2-4 seconds): a grayscale, semi-transparent-skin figure with visible muscle structure, plain white background, holding one end of a thick battle rope in each hand anchored to a fixed point in front. The animation starts with one arm raised high with the rope whipped upward and the other arm low; the figure smoothly reverses the arm positions, creating an alternating wave, then cycles back to the starting arm positions — seamless loop, ends exactly where it begins. The shoulders and arms are highlighted in solid red/orange throughout. Camera: clean three-quarter angle showing the rope waves and the alternating arm action.",
-      "imageReady": false,
-      "gifReady": false
+      "imageReady": true,
+      "gifReady": true
     },
     {
       "name": "Jumping jacks",
@@ -945,8 +951,8 @@
       "gifPath": "/exercises/jumping-jacks.gif",
       "imagePrompt": "* A stylized anatomical fitness illustration: a grayscale, semi-transparent-skin figure with visible muscle structure, plain white background, two-panel side-by-side sequence. Left panel: the figure stands with feet together and arms down at the sides. Right panel: the same figure mid-jump with feet spread wide and arms raised overhead. The full body (shoulders and legs) is highlighted in solid red/orange against the grayscale body. Camera: clean front three-quarter angle showing the full range of the jump.",
       "gifPrompt": "* A stylized anatomical fitness illustration animated as a short seamless loop (2-4 seconds): a grayscale, semi-transparent-skin figure with visible muscle structure, plain white background. The animation starts with feet together and arms down at the sides; the figure smoothly jumps to feet spread wide with arms raised overhead, then jumps back to the starting feet-together position — seamless loop, ends exactly where it begins. The full body (shoulders and legs) is highlighted in solid red/orange throughout. Camera: clean front three-quarter angle showing the full range of the jump.",
-      "imageReady": false,
-      "gifReady": false
+      "imageReady": true,
+      "gifReady": true
     },
     {
       "name": "Clean & press",
@@ -956,8 +962,8 @@
       "gifPath": "/exercises/clean-press.gif",
       "imagePrompt": "* A stylized anatomical fitness illustration: a grayscale, semi-transparent-skin figure with visible muscle structure, a loaded barbell, plain white background, two-panel side-by-side sequence. Left panel: the figure has just caught the barbell racked at the shoulders in a partial squat, elbows high, having pulled it explosively from the floor. Right panel: the same figure standing tall with the barbell pressed straight overhead, arms fully extended. The shoulders, legs, and back are highlighted in solid red/orange against the desaturated body. Camera: clean side angle showing both the shoulder-rack catch and the overhead lockout.",
       "gifPrompt": "* A stylized anatomical fitness illustration animated as a short seamless loop (2-4 seconds): a grayscale, semi-transparent-skin figure with visible muscle structure, plain white background, a loaded barbell. The animation starts with the barbell racked at the shoulders in a partial squat, having just been pulled from the floor; the figure smoothly stands tall and presses the bar straight overhead to full arm extension, pauses briefly, then lowers and resets back to the starting shoulder-rack position — seamless loop, ends exactly where it begins. The shoulders, legs, and back are highlighted in solid red/orange throughout. Camera: clean side angle showing both the shoulder-rack catch and the overhead lockout.",
-      "imageReady": false,
-      "gifReady": false
+      "imageReady": true,
+      "gifReady": true
     },
     {
       "name": "Kettlebell swing",
@@ -978,8 +984,8 @@
       "gifPath": "/exercises/thruster.gif",
       "imagePrompt": "* A stylized anatomical fitness illustration: a grayscale, semi-transparent-skin figure with visible muscle structure, a barbell racked at the shoulders, plain white background, two-panel side-by-side sequence. Left panel: the figure is in a deep squat, thighs parallel to the floor, barbell racked at the shoulders. Right panel: the same figure standing tall, legs fully extended, the barbell pressed straight overhead in one continuous motion. The legs and shoulders are highlighted in solid red/orange against the desaturated body. Camera: clean side angle showing the squat-to-press transition.",
       "gifPrompt": "* A stylized anatomical fitness illustration animated as a short seamless loop (2-4 seconds): a grayscale, semi-transparent-skin figure with visible muscle structure, plain white background, a barbell racked at the shoulders. The animation starts in a deep squat, thighs parallel to the floor; the figure smoothly drives up explosively, pressing the bar straight overhead as it stands, pauses briefly at the top, then lowers back into the starting squat with the bar re-racked at the shoulders — seamless loop, ends exactly where it begins. The legs and shoulders are highlighted in solid red/orange throughout. Camera: clean side angle showing the squat-to-press transition.",
-      "imageReady": false,
-      "gifReady": false
+      "imageReady": true,
+      "gifReady": true
     },
     {
       "name": "Turkish get-up",
@@ -989,8 +995,8 @@
       "gifPath": "/exercises/turkish-get-up.gif",
       "imagePrompt": "* A stylized anatomical fitness illustration: a grayscale, semi-transparent-skin figure with visible muscle structure, one arm holding a kettlebell locked out straight overhead, plain white background, two-panel side-by-side sequence. Left panel: the figure lies on its back on the floor, the kettlebell pressed straight up in one hand, the opposite arm and leg braced out for support. Right panel: the same figure standing fully upright, the kettlebell still locked out overhead in the same hand. The shoulders and core are highlighted in solid red/orange against the desaturated body. Camera: clean three-quarter angle showing the overhead lockout maintained throughout the transition from floor to standing.",
       "gifPrompt": "* A stylized anatomical fitness illustration animated as a short seamless loop (2-4 seconds): a grayscale, semi-transparent-skin figure with visible muscle structure, plain white background, one arm holding a kettlebell locked out straight overhead. The animation starts lying on its back, the kettlebell pressed straight up; the figure smoothly moves through the sit-up, bridge, and lunge sequence to stand fully upright with the kettlebell still locked out overhead, pauses briefly, then reverses the sequence back down to the starting floor position — seamless loop, ends exactly where it begins. The shoulders and core are highlighted in solid red/orange throughout. Camera: clean three-quarter angle showing the overhead lockout maintained throughout the transition from floor to standing.",
-      "imageReady": false,
-      "gifReady": false
+      "imageReady": true,
+      "gifReady": true
     },
     {
       "name": "Farmer's walk",
@@ -1000,8 +1006,8 @@
       "gifPath": "/exercises/farmer-s-walk.gif",
       "imagePrompt": "* A stylized anatomical fitness illustration: a grayscale, semi-transparent-skin walking figure with visible muscle structure, a heavy dumbbell held in each hand at the sides, plain white background, two-panel side-by-side sequence showing two steps of the same walk. Left panel: the figure strides forward with one foot leading, both dumbbells held at the sides, torso upright. Right panel: the same figure a stride further along, the opposite foot now leading, torso still upright and shoulders back. The forearms/grip and trunk are highlighted in solid red/orange against the grayscale body. Camera: clean side angle showing the upright posture and the loaded stride.",
       "gifPrompt": "* A stylized anatomical fitness illustration animated as a short seamless loop (2-4 seconds): a grayscale, semi-transparent-skin walking figure with visible muscle structure, plain white background, a heavy dumbbell held in each hand at the sides. The animation starts with one foot leading, torso upright; the figure smoothly takes a stride with the opposite foot leading, torso staying upright and shoulders back, then cycles back to the starting stride position — seamless loop, ends exactly where it begins. The forearms/grip and trunk are highlighted in solid red/orange throughout. Camera: clean side angle showing the upright posture and the loaded stride.",
-      "imageReady": false,
-      "gifReady": false
+      "imageReady": true,
+      "gifReady": true
     }
   ]
 }
