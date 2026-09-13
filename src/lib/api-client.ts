@@ -61,3 +61,12 @@ export function createMeal(body: Record<string, unknown>) {
 export function deleteMeal(id: number) {
   return request(`/api/meals/${id}`, { method: "DELETE" });
 }
+
+export function patchProfileTargets(body: {
+  proteinTargetG?: number;
+  calorieTargetKcal?: number;
+  fatTargetG?: number;
+  carbTargetG?: number;
+}) {
+  return request("/api/profile", { method: "PATCH", body: JSON.stringify(body) });
+}

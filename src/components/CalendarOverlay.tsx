@@ -58,48 +58,48 @@ export function CalendarOverlay({
 
   return (
     <div
-      className="fixed inset-0 z-30 flex items-center justify-center bg-ink/40 px-4"
+      className="fixed inset-0 z-30 flex items-center justify-center bg-ink/40 px-4 overlay-in"
       onClick={onClose}
       role="presentation"
     >
       <div
-        className="card max-h-[85vh] w-full max-w-md overflow-y-auto p-4"
+        className="card modal-in max-h-[90vh] w-full max-w-2xl overflow-y-auto p-5"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Calendar"
       >
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-4 flex items-center justify-between">
           <button
             onClick={() => setViewMonth((m) => addMonths(m, -1))}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-dim hover:bg-panel-2 hover:text-ink"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-dim hover:bg-panel-2 hover:text-ink"
             aria-label="Previous month"
           >
-            <IconChevronLeft size={18} />
+            <IconChevronLeft size={20} />
           </button>
-          <span className="font-heading text-sm font-bold text-ink">{format(viewMonth, "MMMM yyyy")}</span>
+          <span className="font-heading text-lg font-bold text-ink">{format(viewMonth, "MMMM yyyy")}</span>
           <div className="flex items-center gap-1">
             <button
               onClick={() => setViewMonth((m) => addMonths(m, 1))}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-dim hover:bg-panel-2 hover:text-ink"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-dim hover:bg-panel-2 hover:text-ink"
               aria-label="Next month"
             >
-              <IconChevronRight size={18} />
+              <IconChevronRight size={20} />
             </button>
             <button
               onClick={onClose}
-              className="flex h-9 w-9 items-center justify-center rounded-full text-dim hover:bg-panel-2 hover:text-ink"
+              className="flex h-10 w-10 items-center justify-center rounded-full text-dim hover:bg-panel-2 hover:text-ink"
               aria-label="Close calendar"
             >
-              <IconClose size={16} />
+              <IconClose size={18} />
             </button>
           </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-1 text-center">
+        <div className="grid grid-cols-7 gap-2 text-center">
           {WEEKDAY_HEADERS.map((w) => (
             <div key={w} className="micro py-1 text-faint">
-              {w[0]}
+              {w}
             </div>
           ))}
 
@@ -122,15 +122,15 @@ export function CalendarOverlay({
               ))}
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1.5 border-t border-line pt-3 text-[11px] text-faint">
+        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-line pt-4 text-xs text-faint">
           <LegendDot className="bg-good" label="Done" />
           <LegendDot className="bg-caution" label="Missed" />
           <LegendDot className="border border-line bg-panel" label="Upcoming" />
           <span className="flex items-center gap-1">
-            <IconRun size={12} className="text-dim" /> Run
+            <IconRun size={13} className="text-dim" /> Run
           </span>
           <span className="flex items-center gap-1">
-            <IconWorkout size={12} className="text-dim" /> Workout
+            <IconWorkout size={13} className="text-dim" /> Workout
           </span>
         </div>
       </div>
@@ -141,7 +141,7 @@ export function CalendarOverlay({
 function LegendDot({ className, label }: { className: string; label: string }) {
   return (
     <span className="flex items-center gap-1.5">
-      <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${className}`} />
+      <span className={`h-3 w-3 shrink-0 rounded-full ${className}`} />
       {label}
     </span>
   );
@@ -175,21 +175,21 @@ function DayCell({
   return (
     <button
       onClick={onSelect}
-      className={`flex aspect-square flex-col items-center justify-center gap-0.5 rounded-lg transition-colors ${
+      className={`flex aspect-square flex-col items-center justify-center gap-1 rounded-xl transition-colors hover:bg-panel-2 ${
         day.inMonth ? "" : "opacity-30"
       } ${isSelected ? "ring-2 ring-accent ring-offset-1 ring-offset-panel" : ""}`}
     >
       <span
-        className={`flex h-6 w-6 items-center justify-center rounded-full text-[11px] font-medium tabular-nums ${badgeClasses} ${
-          isToday ? "outline outline-1 outline-offset-1 outline-accent" : ""
+        className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-medium tabular-nums ${badgeClasses} ${
+          isToday ? "outline outline-2 outline-offset-1 outline-accent" : ""
         }`}
       >
         {dayNumber}
       </span>
-      <span className="flex h-3 items-center gap-0.5 text-dim">
-        {day.run && <IconRun size={10} />}
-        {day.lift && <IconWorkout size={10} />}
-        {day.off && !day.run && !day.lift && <IconRest size={9} className="text-faint" />}
+      <span className="flex h-4 items-center gap-1 text-dim">
+        {day.run && <IconRun size={13} />}
+        {day.lift && <IconWorkout size={13} />}
+        {day.off && !day.run && !day.lift && <IconRest size={12} className="text-faint" />}
       </span>
     </button>
   );

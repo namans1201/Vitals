@@ -6,34 +6,24 @@ import type { CalendarDay } from "@/domain/calendarStatus";
 export type { CalendarDay } from "@/domain/calendarStatus";
 
 /**
- * Every day shown in a month's calendar grid (the requested month plus
- * enough padding days on either end to fill complete weeks, Monday first).
- * Read-only: never creates WeekPlan rows for weeks nobody has planned yet
- * (see previewWeekSchedule) - browsing the calendar must not have side effects.
+ * Every day from `start` to `end` (inclusive, both UTC-midnight Dates) with
+ * its plan/completion status - the shared building block behind both the
+ * month calendar grid and the streak calculation. Read-only: never creates
+ * WeekPlan rows for weeks nobody has planned yet (see previewWeekSchedule).
  */
-export async function getMonthCalendar(monthIso: string): Promise<CalendarDay[]> {
-  const [year, month] = monthIso.split("-").map(Number);
-  const firstOfMonth = new Date(Date.UTC(year, month - 1, 1));
-  const lastOfMonth = new Date(Date.UTC(year, month, 0));
-
-  const gridStart = new Date(firstOfMonth);
-  gridStart.setUTCDate(gridStart.getUTCDate() - toWeekday(firstOfMonth));
-  const gridEnd = new Date(lastOfMonth);
-  const trailingGap = 6 - toWeekday(lastOfMonth);
-  gridEnd.setUTCDate(gridEnd.getUTCDate() + trailingGap);
-
+export async function getDayRange(start: Date, end: Date): Promise<CalendarDay[]> {
   const allDates: Date[] = [];
-  for (let d = new Date(gridStart); d <= gridEnd; d.setUTCDate(d.getUTCDate() + 1)) {
+  for (let d = new Date(start); d <= end; d.setUTCDate(d.getUTCDate() + 1)) {
     allDates.push(new Date(d));
   }
 
   const [dailyLogs, workouts] = await Promise.all([
     prisma.dailyLog.findMany({
-      where: { date: { gte: gridStart, lte: gridEnd } },
+      where: { date: { gte: start, lte: end } },
       select: { date: true, ranDone: true },
     }),
     prisma.workout.findMany({
-      where: { date: { gte: gridStart, lte: gridEnd } },
+      where: { date: { gte: start, lte: end } },
       select: { date: true, sets: { select: { completed: true } } },
     }),
   ]);
@@ -64,7 +54,7 @@ export async function getMonthCalendar(monthIso: string): Promise<CalendarDay[]>
 
     days.push({
       date: dateIso,
-      inMonth: date >= firstOfMonth && date <= lastOfMonth,
+      inMonth: true,
       run: assignment?.run ?? false,
       lift: assignment?.lift ?? null,
       off: assignment?.off ?? false,
@@ -75,4 +65,23 @@ export async function getMonthCalendar(monthIso: string): Promise<CalendarDay[]>
   }
 
   return days;
+}
+
+/**
+ * Every day shown in a month's calendar grid (the requested month plus
+ * enough padding days on either end to fill complete weeks, Monday first).
+ */
+export async function getMonthCalendar(monthIso: string): Promise<CalendarDay[]> {
+  const [year, month] = monthIso.split("-").map(Number);
+  const firstOfMonth = new Date(Date.UTC(year, month - 1, 1));
+  const lastOfMonth = new Date(Date.UTC(year, month, 0));
+
+  const gridStart = new Date(firstOfMonth);
+  gridStart.setUTCDate(gridStart.getUTCDate() - toWeekday(firstOfMonth));
+  const gridEnd = new Date(lastOfMonth);
+  const trailingGap = 6 - toWeekday(lastOfMonth);
+  gridEnd.setUTCDate(gridEnd.getUTCDate() + trailingGap);
+
+  const days = await getDayRange(gridStart, gridEnd);
+  return days.map((d) => ({ ...d, inMonth: d.date >= toDateParam(firstOfMonth) && d.date <= toDateParam(lastOfMonth) }));
 }

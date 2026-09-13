@@ -108,3 +108,47 @@ export async function getLastTimeForExercise(
     sets: sets.map((s) => ({ reps: s.reps, weightKg: s.weightKg, rir: s.rir })),
   };
 }
+
+export type BestEverForExercise = {
+  /** Heaviest single set ever logged, or null if weight has never been logged. */
+  maxWeightKg: number | null;
+  /** Most reps in a single set ever logged. */
+  maxReps: number | null;
+  /** Best single past session's total volume (sum of reps x weightKg across
+   * that session's sets) - only counts sets where both are present, so an
+   * exercise with no weight history never gets a misleading 0 "PR". */
+  maxVolume: number | null;
+};
+
+/** Best-ever numbers for this exercise across every session before
+ * `beforeDate` - not just the last one - so a set logged today can be
+ * compared against the true all-time record, not just what happened last
+ * time. Kg is opt-in in this app now, so weight/volume gracefully stay
+ * null when nothing's ever been weighed for this exercise. */
+export async function getAllTimeBestForExercise(
+  exerciseId: number,
+  beforeDate: Date,
+): Promise<BestEverForExercise> {
+  const sets = await prisma.workoutSet.findMany({
+    where: { exerciseId, workout: { date: { lt: beforeDate } } },
+    select: { reps: true, weightKg: true, workoutId: true },
+  });
+
+  let maxWeightKg: number | null = null;
+  let maxReps: number | null = null;
+  const volumeByWorkout = new Map<number, number>();
+
+  for (const s of sets) {
+    if (s.weightKg != null) maxWeightKg = maxWeightKg == null ? s.weightKg : Math.max(maxWeightKg, s.weightKg);
+    if (s.reps != null) maxReps = maxReps == null ? s.reps : Math.max(maxReps, s.reps);
+    if (s.reps != null && s.weightKg != null) {
+      volumeByWorkout.set(s.workoutId, (volumeByWorkout.get(s.workoutId) ?? 0) + s.reps * s.weightKg);
+    }
+  }
+
+  return {
+    maxWeightKg,
+    maxReps,
+    maxVolume: volumeByWorkout.size > 0 ? Math.max(...volumeByWorkout.values()) : null,
+  };
+}

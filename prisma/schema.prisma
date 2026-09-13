@@ -18,10 +18,12 @@ model Profile {
   heightCm          Float    @default(172.7)
   sex               String   @default("male")
   timezone          String   @default("Asia/Kolkata")
-  // targets — editable in Settings, never hardcoded in components
+  // targets — editable from the Nutrition page, never hardcoded in components
   proteinTargetG    Int      @default(125)
   calorieTargetKcal Int      @default(2450)
-  waterTargetMl     Int      @default(3500)
+  fatTargetG        Int      @default(70)
+  carbTargetG       Int      @default(300)
+  waterTargetMl     Int      @default(4000)
   proteinPerKg      Float    @default(2.1)
   // which MealPreset.phase is "current" for quick-add — all | aug_dairy | sep_eggs
   mealPhase         String   @default("sep_eggs")
@@ -44,12 +46,22 @@ model WeekPlan {
 
 /// The Indian-vegetarian protein table from 01-plan/02-full-programme.md §5,
 /// for tap-to-add meal logging with no typing and no API calls.
+///
+/// proteinG/caloriesKcal/fatG/carbG are the macros for `baseAmount` units of
+/// `unitLabel` (e.g. baseAmount=100, unitLabel="g" for paneer; baseAmount=1,
+/// unitLabel="egg" for a whole egg) - logging a different quantity scales
+/// all four linearly from this base rather than needing a per-gram row.
 model FoodItem {
   id           Int     @id @default(autoincrement())
   name         String  @unique
   servingLabel String
+  unitType     String  @default("gram") // gram | piece - how a typed quantity scales (continuous vs discrete)
+  unitLabel    String  @default("g") // display suffix: g, ml, scoop, katori, medium, egg, white, …
+  baseAmount   Float   @default(100)
   proteinG     Float
   caloriesKcal Int
+  fatG         Float   @default(0)
+  carbG        Float   @default(0)
   sortOrder    Int     @default(0)
   note         String?
 }
@@ -103,8 +115,8 @@ model DailyLog {
 model Exercise {
   id             Int          @id @default(autoincrement())
   name           String       @unique
-  muscleGroup    String // chest|back_vertical|back_horizontal|front_delt|side_delt|rear_delt|biceps|triceps|quads|hams_hinge|hams_knee|glutes|calves|core_antiext|core_antilat|core_antirot
-  equipment      String // bodyweight|dumbbell|band|pullup_bar|rope|none
+  muscleGroup    String // chest|back_vertical|back_horizontal|front_delt|side_delt|rear_delt|biceps|triceps|quads|hams_hinge|hams_knee|glutes|calves|core_antiext|core_antilat|core_antirot|cardio|full_body
+  equipment      String // bodyweight|dumbbell|band|pullup_bar|rope|none|barbell|cable|machine|ez_bar|kettlebell|box|battle_rope|bike|rowing_machine
   isUnilateral   Boolean      @default(false)
   defaultSets    Int          @default(3)
   defaultRepsMin Int          @default(8)
@@ -166,6 +178,8 @@ model Meal {
   description  String?
   proteinG     Float    @default(0)
   caloriesKcal Int      @default(0)
+  fatG         Float    @default(0)
+  carbG        Float    @default(0)
   day          DailyLog @relation(fields: [date], references: [date])
 
   @@index([date])
@@ -178,6 +192,8 @@ model MealPreset {
   description  String?
   proteinG     Float
   caloriesKcal Int
+  fatG         Float   @default(0)
+  carbG        Float   @default(0)
   phase        String  @default("all") // all | aug_dairy | sep_eggs
   sortOrder    Int     @default(0)
 }

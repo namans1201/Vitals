@@ -39,6 +39,10 @@
   --font-body: var(--font-amulya);
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--bg);
   color: var(--ink);
@@ -147,6 +151,83 @@ h4 {
   background: rgba(142, 142, 148, 0.22);
   backdrop-filter: blur(28px) saturate(190%);
   -webkit-backdrop-filter: blur(28px) saturate(190%);
+}
+
+/*
+ * Motion — light and quiet throughout: short durations, ease-out, a small
+ * fade+translate rather than anything bouncy. The prefers-reduced-motion
+ * block below already collapses every duration to ~0, so none of this
+ * needs its own reduced-motion handling.
+ *
+ * No `forwards`/`both` fill-mode on any of these: once a fill-mode holds an
+ * animation's final frame, a `transform` keyframe (even one that ends up
+ * visually at rest) leaves the element's computed transform as a resolved
+ * matrix rather than the keyword `none` — and any non-`none` transform opens
+ * a new containing block, which silently breaks `position: fixed` on any
+ * descendant (a modal nested in an animated page wrapper renders scrolled
+ * off-screen instead of pinned to the viewport). Plain `animation: ... ;`
+ * with no fill-mode reverts cleanly to the authored (transform: none) style
+ * the instant each one-shot animation ends, so nothing downstream inherits
+ * a containing block.
+ */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes fade-scale-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.97);
+  }
+}
+
+/* One-shot entrance for page-level content — plays once on mount/navigation. */
+.animate-in {
+  animation: fade-in-up 320ms ease-out;
+}
+
+/* Modal backdrop fade. */
+.overlay-in {
+  animation: fade-in 180ms ease-out;
+}
+
+/* Modal panel — a touch of scale alongside the fade reads as the panel
+ * settling into place rather than just appearing. */
+.modal-in {
+  animation: fade-scale-in 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Tab-panel content swap — pair with a `key` on the panel so React remounts
+ * it on tab change and the animation replays. */
+.tab-fade {
+  animation: fade-in 200ms ease-out;
+}
+
+/* Smooth collapse/expand for the checklist-style dropdown: the wrapper
+ * animates grid-template-rows (0fr closed, 1fr open) and the inner div's
+ * overflow:hidden clips it — the grid-rows trick since height:auto can't be
+ * transitioned directly. */
+.collapse-rows {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 280ms ease-out;
+}
+
+.collapse-rows.is-open {
+  grid-template-rows: 1fr;
+}
+
+.collapse-rows > div {
+  overflow: hidden;
 }
 
 @media (prefers-reduced-motion: reduce) {

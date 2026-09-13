@@ -18,7 +18,13 @@ export type MuscleGroup =
   | "calves"
   | "core_antiext"
   | "core_antilat"
-  | "core_antirot";
+  | "core_antirot"
+  // Added alongside the gym-equipment library expansion (health-hub-main) -
+  // for conditioning work and true multi-joint complexes with no single
+  // dominant muscle (running, rowing, burpees, clean & press, etc.) that
+  // don't honestly fit any of the specific groups above.
+  | "cardio"
+  | "full_body";
 
 export type CountableSet = {
   completed: boolean;

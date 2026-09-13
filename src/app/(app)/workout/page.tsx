@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { parseDateParam, todayIso } from "@/lib/date";
 import { dayFromSchedule, getOrCreateWeekPlan } from "@/lib/weekPlans";
-import { getLastTimeForExercise, getOrCreateWorkoutForDate } from "@/lib/workouts";
+import { getAllTimeBestForExercise, getLastTimeForExercise, getOrCreateWorkoutForDate } from "@/lib/workouts";
 import { progression } from "@/domain/progression";
 import { WorkoutClient, type ExerciseGroup } from "./WorkoutClient";
 
@@ -30,17 +30,20 @@ export default async function WorkoutPage({
       return true;
     });
 
-    // One exercise's last-time lookup doesn't depend on another's, so fetch
-    // them all in parallel instead of serially awaiting inside the loop -
-    // with 4-8 exercises per session this was 4-8 sequential DB round-trips.
-    const lastTimes = await Promise.all(
-      uniqueSets.map((set) => getLastTimeForExercise(set.exerciseId, date)),
-    );
+    // One exercise's last-time/best-ever lookups don't depend on another's,
+    // so fetch them all in parallel instead of serially awaiting inside the
+    // loop - with 4-8 exercises per session this was otherwise 4-8+
+    // sequential DB round-trips.
+    const [lastTimes, bestEvers] = await Promise.all([
+      Promise.all(uniqueSets.map((set) => getLastTimeForExercise(set.exerciseId, date))),
+      Promise.all(uniqueSets.map((set) => getAllTimeBestForExercise(set.exerciseId, date))),
+    ]);
 
     exerciseGroups = uniqueSets.map((set, i) => {
       const sets = workout.sets.filter((s) => s.exerciseId === set.exerciseId);
       const exercise = set.exercise;
       const lastTime = lastTimes[i];
+      const bestEver = bestEvers[i];
       const loggedLastSets = (lastTime?.sets ?? []).filter(
         (s): s is { reps: number; weightKg: number | null; rir: number | null } => s.reps !== null,
       );
@@ -50,7 +53,7 @@ export default async function WorkoutPage({
         repsMax: exercise.defaultRepsMax,
       });
 
-      return { exercise, sets, lastTime, progression: progressionResult };
+      return { exercise, sets, lastTime, bestEver, progression: progressionResult };
     });
   }
 

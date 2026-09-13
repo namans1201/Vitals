@@ -75,4 +75,13 @@ export const createMealSchema = z.object({
   description: z.string().max(500).nullable().optional(),
   proteinG: z.number().min(0).max(500).default(0),
   caloriesKcal: z.number().int().min(0).max(10000).default(0),
+  fatG: z.number().min(0).max(500).default(0),
+  carbG: z.number().min(0).max(1000).default(0),
+});
+
+export const profileTargetsPatchSchema = z.object({
+  proteinTargetG: z.number().int().min(0).max(1000).optional(),
+  calorieTargetKcal: z.number().int().min(0).max(10000).optional(),
+  fatTargetG: z.number().int().min(0).max(1000).optional(),
+  carbTargetG: z.number().int().min(0).max(2000).optional(),
 });

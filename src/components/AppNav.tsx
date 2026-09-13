@@ -14,7 +14,7 @@ import {
 const NAV_ITEMS = [
   { href: "/", label: "Today", Icon: IconToday },
   { href: "/workout", label: "Workout", Icon: IconWorkout },
-  { href: "/nutrition", label: "Food", Icon: IconFood },
+  { href: "/nutrition", label: "Diet", Icon: IconFood },
   { href: "/plan", label: "Week", Icon: IconWeek },
 ] as const;
 

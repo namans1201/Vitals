@@ -1,25 +1,33 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import { DateNav } from "@/components/DateNav";
 import { useToast } from "@/components/Toast";
 import { createWorkout, addWorkoutSet, patchWorkoutSet } from "@/lib/api-client";
 import { SESSION_LABELS, type SessionType } from "@/domain/sessionTemplates";
-import { IconPlus, IconRun } from "@/components/icons";
+import { IconClose, IconInfo, IconMinus, IconPlus, IconRun } from "@/components/icons";
+import { useEscapeKey } from "@/lib/useEscapeKey";
+import { playCountdownBeep, playPersonalRecord, playRestOver, vibrate } from "@/lib/sounds";
+import { ExerciseFormGuideModal } from "@/components/ExerciseFormGuideModal";
 import type { DayAssignment } from "@/domain/weekPlan";
 import type { ProgressionResult } from "@/domain/progression";
 import type { Exercise, WorkoutSet } from "@/generated/prisma/client";
-import type { WorkoutWithSets, LastTimeForExercise } from "@/lib/workouts";
+import type { WorkoutWithSets, LastTimeForExercise, BestEverForExercise } from "@/lib/workouts";
 
 export type ExerciseGroup = {
   exercise: Exercise;
   sets: WorkoutSet[];
   lastTime: LastTimeForExercise;
+  bestEver: BestEverForExercise;
   progression: ProgressionResult;
 };
 
 const STARTABLE_SESSIONS: SessionType[] = ["upper_a", "lower_a", "upper_b", "lower_b", "full_body"];
+const REST_DEFAULT_SECONDS = 90;
+const REST_STEP_SECONDS = 15;
+
+type RestState = { active: boolean; remaining: number; total: number };
 
 export function WorkoutClient({
   date,
@@ -40,6 +48,43 @@ export function WorkoutClient({
   const toast = useToast();
   const [busy, setBusy] = useState(false);
 
+  // Rest timer - shared across every exercise card, since only one rest
+  // ever happens at a time regardless of which set just finished.
+  const [rest, setRest] = useState<RestState>({ active: false, remaining: 0, total: REST_DEFAULT_SECONDS });
+  const [restRunning, setRestRunning] = useState(true);
+  const [restDefault, setRestDefault] = useState(REST_DEFAULT_SECONDS);
+
+  useEffect(() => {
+    if (!rest.active || !restRunning) return;
+    const id = setInterval(() => {
+      setRest((r) => (r.remaining <= 1 ? { ...r, remaining: 0, active: false } : { ...r, remaining: r.remaining - 1 }));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [rest.active, restRunning]);
+
+  useEffect(() => {
+    if (!rest.active) {
+      if (rest.remaining === 0 && rest.total > 0) {
+        playRestOver();
+        vibrate([80, 60, 80]);
+      }
+      return;
+    }
+    if (rest.remaining > 0 && rest.remaining <= 3) playCountdownBeep();
+  }, [rest.remaining, rest.active, rest.total]);
+
+  function startRest() {
+    setRest({ active: true, remaining: restDefault, total: restDefault });
+    setRestRunning(true);
+  }
+  function adjustRest(delta: number) {
+    setRest((r) => ({ ...r, remaining: Math.max(0, r.remaining + delta), total: Math.max(1, r.total + delta) }));
+    setRestDefault((d) => Math.max(15, d + delta));
+  }
+  function skipRest() {
+    setRest((r) => ({ ...r, active: false }));
+  }
+
   async function startSession(sessionType: SessionType | "custom") {
     setBusy(true);
     try {
@@ -59,7 +104,7 @@ export function WorkoutClient({
   );
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-2xl animate-in">
       <DateNav date={date} basePath="/workout" />
 
       <div className="card mb-3 p-4">
@@ -122,8 +167,13 @@ export function WorkoutClient({
 
       {workout && (
         <>
+          {rest.active && (
+            <div className="sticky top-2 z-10 mb-3">
+              <RestTimerBar rest={rest} running={restRunning} onToggleRunning={() => setRestRunning((r) => !r)} onAdjust={adjustRest} onSkip={skipRest} />
+            </div>
+          )}
           {exerciseGroups.map((group) => (
-            <ExerciseCard key={group.exercise.id} workoutId={workout.id} group={group} />
+            <ExerciseCard key={group.exercise.id} workoutId={workout.id} group={group} onSetCompleted={startRest} />
           ))}
           <AddExercise workoutId={workout.id} allExercises={allExercises} existing={exerciseGroups} />
         </>
@@ -132,16 +182,185 @@ export function WorkoutClient({
   );
 }
 
-function ExerciseCard({ workoutId, group }: { workoutId: number; group: ExerciseGroup }) {
-  const { exercise, sets, lastTime, progression: prog } = group;
+function RestTimerBar({
+  rest,
+  running,
+  onToggleRunning,
+  onAdjust,
+  onSkip,
+}: {
+  rest: RestState;
+  running: boolean;
+  onToggleRunning: () => void;
+  onAdjust: (delta: number) => void;
+  onSkip: () => void;
+}) {
+  const circumference = 2 * Math.PI * 26;
+  const progress = rest.total > 0 ? (rest.total - rest.remaining) / rest.total : 0;
+  const minutes = Math.floor(rest.remaining / 60);
+  const seconds = rest.remaining % 60;
+
+  return (
+    <div className="card flex items-center gap-3 p-3">
+      <div className="relative h-14 w-14 shrink-0">
+        <svg className="h-full w-full -rotate-90" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="26" fill="none" stroke="var(--panel-2)" strokeWidth="5" />
+          <circle
+            cx="30"
+            cy="30"
+            r="26"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="5"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={circumference * (1 - progress)}
+            className={`transition-[stroke-dashoffset] duration-500 ${rest.remaining <= 3 ? "text-bad" : "text-accent"}`}
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className={`font-heading text-xs font-bold tabular-nums ${rest.remaining <= 3 ? "text-bad" : "text-ink"}`}>
+            {minutes}:{seconds.toString().padStart(2, "0")}
+          </span>
+        </div>
+      </div>
+
+      <div className="flex-1">
+        <div className="micro text-faint">Rest</div>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => onAdjust(-REST_STEP_SECONDS)}
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-line text-dim hover:bg-panel-2"
+            aria-label="15 seconds less"
+          >
+            <IconMinus size={12} />
+          </button>
+          <span className="micro w-9 text-center text-faint">±15s</span>
+          <button
+            onClick={() => onAdjust(REST_STEP_SECONDS)}
+            className="flex h-7 w-7 items-center justify-center rounded-full border border-line text-dim hover:bg-panel-2"
+            aria-label="15 seconds more"
+          >
+            <IconPlus size={12} />
+          </button>
+        </div>
+      </div>
+
+      <button
+        onClick={onToggleRunning}
+        className="h-9 shrink-0 rounded-full border border-line px-3 text-xs font-medium text-dim hover:bg-panel-2"
+      >
+        {running ? "Pause" : "Resume"}
+      </button>
+      <button onClick={onSkip} className="h-9 shrink-0 rounded-full bg-accent px-3 text-xs font-medium text-white">
+        Skip
+      </button>
+    </div>
+  );
+}
+
+type PRType = "reps" | "weight" | "volume";
+
+function ExerciseCard({
+  workoutId,
+  group,
+  onSetCompleted,
+}: {
+  workoutId: number;
+  group: ExerciseGroup;
+  onSetCompleted: () => void;
+}) {
+  const { exercise, sets, lastTime, bestEver, progression: prog } = group;
+  const toast = useToast();
+  const [weightModalOpen, setWeightModalOpen] = useState(false);
+  const [formGuideOpen, setFormGuideOpen] = useState(false);
+  // Reps and weight are lifted here (not left inside each set row / the
+  // weight modal) purely so a PR can be checked against the exercise's
+  // whole current session - RIR and the completed toggle don't affect any
+  // PR metric, so those stay local to SetRow as before.
+  const [reps, setReps] = useState(() => new Map(sets.map((s) => [s.id, s.reps?.toString() ?? ""])));
+  const [weights, setWeights] = useState(() => new Map(sets.map((s) => [s.id, s.weightKg?.toString() ?? ""])));
+  const celebratedPRs = useRef<Set<PRType>>(new Set());
+
+  function checkPRs(nextReps: Map<number, string>, nextWeights: Map<number, string>) {
+    let maxReps = 0;
+    let maxWeight = 0;
+    let volume = 0;
+    for (const id of nextReps.keys()) {
+      const r = Number(nextReps.get(id));
+      const w = Number(nextWeights.get(id));
+      if (nextReps.get(id) && r > maxReps) maxReps = r;
+      if (nextWeights.get(id) && w > maxWeight) maxWeight = w;
+      if (nextReps.get(id) && nextWeights.get(id)) volume += r * w;
+    }
+
+    const prs: { type: PRType; message: string }[] = [];
+    if (!celebratedPRs.current.has("reps") && bestEver.maxReps != null && maxReps > bestEver.maxReps) {
+      prs.push({ type: "reps", message: `New PR - ${maxReps} reps (prev best ${bestEver.maxReps})` });
+    }
+    if (!celebratedPRs.current.has("weight") && bestEver.maxWeightKg != null && maxWeight > bestEver.maxWeightKg) {
+      prs.push({ type: "weight", message: `New PR - ${maxWeight} kg (prev best ${bestEver.maxWeightKg})` });
+    }
+    if (!celebratedPRs.current.has("volume") && bestEver.maxVolume != null && volume > bestEver.maxVolume) {
+      prs.push({ type: "volume", message: `New PR - session volume ${Math.round(volume)} (prev best ${Math.round(bestEver.maxVolume)})` });
+    }
+    if (prs.length > 0) {
+      for (const pr of prs) {
+        celebratedPRs.current.add(pr.type);
+        toast(pr.message);
+      }
+      playPersonalRecord();
+      vibrate([60, 40, 60, 40, 120]);
+    }
+  }
+
+  function handleRepsChange(setId: number, value: string) {
+    setReps((prev) => new Map(prev).set(setId, value));
+  }
+  function handleRepsBlur(setId: number, value: string) {
+    patchWorkoutSet(workoutId, setId, { reps: value === "" ? null : Number(value) }).catch(() =>
+      toast("Couldn't save - check your connection"),
+    );
+    checkPRs(new Map(reps).set(setId, value), weights);
+  }
+  function handleWeightChange(setId: number, value: string) {
+    setWeights((prev) => new Map(prev).set(setId, value));
+  }
+  function handleWeightBlur(setId: number, value: string) {
+    patchWorkoutSet(workoutId, setId, { weightKg: value === "" ? null : Number(value) }).catch(() =>
+      toast("Couldn't save - check your connection"),
+    );
+    checkPRs(reps, new Map(weights).set(setId, value));
+  }
 
   return (
     <div className="card mb-3 p-4">
       <div className="mb-1 flex items-baseline justify-between gap-2">
         <h3 className="font-heading text-sm font-bold text-ink">{exercise.name}</h3>
-        <span className="shrink-0 text-xs tabular-nums text-faint">
-          {sets.length} × {exercise.defaultRepsMin}-{exercise.defaultRepsMax}
-        </span>
+        <div className="flex shrink-0 items-center gap-2">
+          <span className="text-xs tabular-nums text-faint">
+            {sets.length} × {exercise.defaultRepsMin}-{exercise.defaultRepsMax}
+          </span>
+          <button
+            type="button"
+            onClick={() => setFormGuideOpen(true)}
+            className="flex h-6 w-6 items-center justify-center rounded-full text-faint transition-colors hover:bg-panel-2 hover:text-dim"
+            aria-label="Form guide"
+          >
+            <IconInfo size={15} />
+          </button>
+          {/* Weight is opt-in and off to the side on purpose - reps/sets
+              against the plan above are the point of this screen. Logging a
+              weight opens one small modal for the whole exercise instead of
+              a pill wedged onto every set row. */}
+          <button
+            type="button"
+            onClick={() => setWeightModalOpen(true)}
+            className="micro rounded-full border border-line px-2 py-1 text-faint transition-colors hover:border-dim hover:text-dim"
+          >
+            + Kg
+          </button>
+        </div>
       </div>
       {exercise.cues && <p className="mb-2 text-xs text-dim">{exercise.cues}</p>}
 
@@ -168,23 +387,56 @@ function ExerciseCard({ workoutId, group }: { workoutId: number; group: Exercise
 
       <div className="space-y-1.5">
         {sets.map((set, i) => (
-          <SetRow key={set.id} workoutId={workoutId} set={set} index={i + 1} />
+          <SetRow
+            key={set.id}
+            workoutId={workoutId}
+            set={set}
+            index={i + 1}
+            reps={reps.get(set.id) ?? ""}
+            onRepsChange={(v) => handleRepsChange(set.id, v)}
+            onRepsBlur={(v) => handleRepsBlur(set.id, v)}
+            onSetCompleted={onSetCompleted}
+          />
         ))}
       </div>
+
+      {weightModalOpen && (
+        <WeightModal
+          exerciseName={exercise.name}
+          sets={sets}
+          weights={weights}
+          onChange={handleWeightChange}
+          onBlur={handleWeightBlur}
+          onClose={() => setWeightModalOpen(false)}
+        />
+      )}
+      {formGuideOpen && (
+        <ExerciseFormGuideModal exerciseName={exercise.name} onClose={() => setFormGuideOpen(false)} />
+      )}
     </div>
   );
 }
 
-function SetRow({ workoutId, set, index }: { workoutId: number; set: WorkoutSet; index: number }) {
+function SetRow({
+  workoutId,
+  set,
+  index,
+  reps,
+  onRepsChange,
+  onRepsBlur,
+  onSetCompleted,
+}: {
+  workoutId: number;
+  set: WorkoutSet;
+  index: number;
+  reps: string;
+  onRepsChange: (value: string) => void;
+  onRepsBlur: (value: string) => void;
+  onSetCompleted: () => void;
+}) {
   const toast = useToast();
-  const [reps, setReps] = useState(set.reps?.toString() ?? "");
-  const [weightKg, setWeightKg] = useState(set.weightKg?.toString() ?? "");
   const [rir, setRir] = useState(set.rir?.toString() ?? "");
   const [completed, setCompleted] = useState(set.completed);
-  // Reps/sets are the whole point of this screen; kg is opt-in per set and
-  // starts open only when a set already has a logged weight, so existing
-  // data never gets hidden away.
-  const [showWeight, setShowWeight] = useState(set.weightKg != null);
 
   function save(partial: Record<string, unknown>) {
     patchWorkoutSet(workoutId, set.id, partial).catch(() => toast("Couldn't save - check your connection"));
@@ -194,6 +446,7 @@ function SetRow({ workoutId, set, index }: { workoutId: number; set: WorkoutSet;
     const next = !completed;
     setCompleted(next);
     save({ completed: next });
+    if (next) onSetCompleted();
   }
 
   return (
@@ -206,36 +459,82 @@ function SetRow({ workoutId, set, index }: { workoutId: number; set: WorkoutSet;
       >
         {index}
       </button>
-      <LabeledField
-        label="Reps"
-        value={reps}
-        onChange={(v) => setReps(v)}
-        onBlur={() => save({ reps: reps === "" ? null : Number(reps) })}
-      />
+      <LabeledField label="Reps" value={reps} onChange={onRepsChange} onBlur={() => onRepsBlur(reps)} />
       <LabeledField
         label="RIR"
         value={rir}
         onChange={(v) => setRir(v)}
         onBlur={() => save({ rir: rir === "" ? null : Number(rir) })}
       />
-      {showWeight ? (
-        <LabeledField
-          label="Kg"
-          step="0.5"
-          value={weightKg}
-          onChange={(v) => setWeightKg(v)}
-          onBlur={() => save({ weightKg: weightKg === "" ? null : Number(weightKg) })}
-        />
-      ) : (
+    </div>
+  );
+}
+
+/** Weight logging for a whole exercise in one place, off the main set rows -
+ * kg is opt-in and not the point of this screen (see the "+ Kg" button in
+ * ExerciseCard), but still per-set once you do want it. Controlled by
+ * ExerciseCard (not its own local state) so a weight entered here can feed
+ * the same-card PR check. */
+function WeightModal({
+  exerciseName,
+  sets,
+  weights,
+  onChange,
+  onBlur,
+  onClose,
+}: {
+  exerciseName: string;
+  sets: WorkoutSet[];
+  weights: Map<number, string>;
+  onChange: (setId: number, value: string) => void;
+  onBlur: (setId: number, value: string) => void;
+  onClose: () => void;
+}) {
+  useEscapeKey(onClose);
+
+  return (
+    <div
+      className="fixed inset-0 z-30 flex items-center justify-center bg-ink/40 px-4 overlay-in"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div className="card modal-in w-full max-w-xs p-4" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="font-heading text-sm font-bold text-ink">{exerciseName}</span>
+          <button
+            onClick={onClose}
+            className="flex h-8 w-8 items-center justify-center rounded-full text-dim hover:bg-panel-2 hover:text-ink"
+            aria-label="Close"
+          >
+            <IconClose size={15} />
+          </button>
+        </div>
+        <div className="space-y-2">
+          {sets.map((set, i) => (
+            <div key={set.id} className="flex items-center justify-between gap-3">
+              <span className="text-sm text-dim">Set {i + 1}</span>
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="number"
+                  step="0.5"
+                  placeholder="-"
+                  value={weights.get(set.id) ?? ""}
+                  onChange={(e) => onChange(set.id, e.target.value)}
+                  onBlur={(e) => onBlur(set.id, e.target.value)}
+                  className="h-11 w-20 rounded-xl border border-line bg-panel-2 px-2 text-center text-sm text-ink outline-none focus:border-accent"
+                />
+                <span className="text-xs text-faint">kg</span>
+              </div>
+            </div>
+          ))}
+        </div>
         <button
-          type="button"
-          onClick={() => setShowWeight(true)}
-          className="flex h-[3.25rem] w-14 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl border border-dashed border-line text-faint transition-colors hover:border-dim hover:text-dim"
+          onClick={onClose}
+          className="mt-4 h-10 w-full rounded-full bg-accent text-sm font-medium text-white"
         >
-          <IconPlus size={12} />
-          <span className="micro">Kg</span>
+          Done
         </button>
-      )}
+      </div>
     </div>
   );
 }

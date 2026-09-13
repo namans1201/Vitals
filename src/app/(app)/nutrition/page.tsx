@@ -5,8 +5,13 @@ import { NutritionClient } from "./NutritionClient";
 // Reads live DB state on every request - must never be statically prerendered.
 export const dynamic = "force-dynamic";
 
-export default async function NutritionPage() {
-  const dateStr = todayIso();
+export default async function NutritionPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
+  const { date: dateParam } = await searchParams;
+  const dateStr = dateParam ?? todayIso();
   const date = parseDateParam(dateStr);
 
   const [profile, meals, presets, foods] = await Promise.all([
@@ -24,6 +29,8 @@ export default async function NutritionPage() {
       date={dateStr}
       proteinTargetG={profile?.proteinTargetG ?? 125}
       calorieTargetKcal={profile?.calorieTargetKcal ?? 2450}
+      fatTargetG={profile?.fatTargetG ?? 70}
+      carbTargetG={profile?.carbTargetG ?? 300}
       meals={meals}
       presets={visiblePresets}
       foods={foods}

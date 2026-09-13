@@ -1,17 +1,16 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { addDays, differenceInCalendarDays, format, parseISO } from "date-fns";
-import { IconCalendar, IconChevronLeft, IconChevronRight } from "@/components/icons";
-import { CalendarOverlay } from "@/components/CalendarOverlay";
+import { addDays, differenceInCalendarDays, format, parseISO, startOfWeek } from "date-fns";
+import { IconChevronLeft, IconChevronRight } from "@/components/icons";
 import { todayIso } from "@/lib/date";
 
-const STRIP_RADIUS = 3; // days shown on each side of the selected date
-
+// The full month view lives on the Week tab now (see PlanClient.tsx) - this
+// bar only handles nearby-day browsing, so it doesn't need its own calendar
+// trigger/overlay.
 export function DateNav({ date, basePath = "/" }: { date: string; basePath?: string }) {
   const router = useRouter();
-  const [calendarOpen, setCalendarOpen] = useState(false);
   const current = parseISO(date);
   // Both `current` and `todayDate` are parsed from a "YYYY-MM-DD" string the
   // same way (parseISO -> local midnight), so day-arithmetic/comparisons
@@ -26,13 +25,13 @@ export function DateNav({ date, basePath = "/" }: { date: string; basePath?: str
     router.push(`${basePath}?date=${format(target, "yyyy-MM-dd")}`);
   }
 
-  const strip = useMemo(() => {
-    const days = [];
-    for (let i = -STRIP_RADIUS; i <= STRIP_RADIUS; i++) {
-      days.push(addDays(current, i));
-    }
-    return days;
-  }, [current]);
+  // A fixed Monday-first week, not a rolling window centred on the selected
+  // day - a rolling strip re-centred itself (and visibly jumped) every time
+  // the selection changed, even for an ordinary same-week tap. The arrows
+  // below step a whole week at a time; only crossing into a different week
+  // ever moves these 7 days.
+  const weekStart = useMemo(() => startOfWeek(current, { weekStartsOn: 1 }), [current]);
+  const week = useMemo(() => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)), [weekStart]);
 
   return (
     <div className="mb-4 flex flex-col gap-2">
@@ -60,15 +59,15 @@ export function DateNav({ date, basePath = "/" }: { date: string; basePath?: str
 
       <div className="flex items-center gap-1.5">
         <button
-          onClick={() => go(addDays(current, -1))}
+          onClick={() => go(addDays(current, -7))}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-panel text-dim transition-colors hover:bg-panel-2 hover:text-ink"
-          aria-label="Previous day"
+          aria-label="Previous week"
         >
           <IconChevronLeft size={16} />
         </button>
 
-        <div className="flex min-w-0 flex-1 gap-1.5 overflow-x-auto">
-          {strip.map((day) => {
+        <div className="grid flex-1 grid-cols-7 gap-1.5">
+          {week.map((day) => {
             const iso = format(day, "yyyy-MM-dd");
             const selected = iso === date;
             const isToday = iso === todayIsoStr;
@@ -76,7 +75,7 @@ export function DateNav({ date, basePath = "/" }: { date: string; basePath?: str
               <button
                 key={iso}
                 onClick={() => go(day)}
-                className={`flex h-14 w-11 shrink-0 flex-col items-center justify-center gap-0.5 rounded-xl transition-colors ${
+                className={`flex h-14 flex-col items-center justify-center gap-0.5 rounded-xl transition-colors ${
                   selected
                     ? "bg-accent text-white"
                     : isToday
@@ -84,7 +83,7 @@ export function DateNav({ date, basePath = "/" }: { date: string; basePath?: str
                       : "bg-panel-2 text-ink hover:bg-line/60"
                 }`}
               >
-                <span className={`micro ${selected ? "text-white/70" : "text-faint"}`}>{format(day, "EEE")[0]}</span>
+                <span className={`micro ${selected ? "text-white/70" : "text-faint"}`}>{format(day, "EEE")}</span>
                 <span className="text-sm font-bold tabular-nums">{format(day, "d")}</span>
               </button>
             );
@@ -92,28 +91,13 @@ export function DateNav({ date, basePath = "/" }: { date: string; basePath?: str
         </div>
 
         <button
-          onClick={() => go(addDays(current, 1))}
+          onClick={() => go(addDays(current, 7))}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-panel text-dim transition-colors hover:bg-panel-2 hover:text-ink"
-          aria-label="Next day"
+          aria-label="Next week"
         >
           <IconChevronRight size={16} />
         </button>
-
-        <button
-          onClick={() => setCalendarOpen(true)}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line bg-panel text-dim transition-colors hover:bg-panel-2 hover:text-ink"
-          aria-label="Open calendar"
-        >
-          <IconCalendar size={16} />
-        </button>
       </div>
-
-      <CalendarOverlay
-        open={calendarOpen}
-        onClose={() => setCalendarOpen(false)}
-        selectedDate={date}
-        onSelectDate={(iso) => go(parseISO(iso))}
-      />
     </div>
   );
 }

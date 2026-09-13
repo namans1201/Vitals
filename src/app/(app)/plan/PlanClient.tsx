@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import { saveWeekPlan } from "@/lib/api-client";
 import { SESSION_LABELS } from "@/domain/sessionTemplates";
-import { IconRun } from "@/components/icons";
+import { IconCalendar, IconRest, IconRun } from "@/components/icons";
+import { CalendarOverlay } from "@/components/CalendarOverlay";
 import {
   buildWeekSchedule,
   suggestWeekOptions,
@@ -37,6 +38,7 @@ export function PlanClient({
     flexChoice === "mobility" ? "mobility" : "run",
   );
   const [busy, setBusy] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   const result = useMemo(() => buildWeekSchedule({ runDays: runs, offDays: offs }), [runs, offs]);
   const suggestions = useMemo(() => suggestWeekOptions(3), []);
@@ -67,7 +69,7 @@ export function PlanClient({
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-2xl animate-in">
       <div className="card mb-3 p-4">
         <span className="micro-pill mb-2">Week of {weekStartIso}</span>
         <p className="text-xs text-dim">
@@ -76,6 +78,26 @@ export function PlanClient({
           never a run on legs, never a run the day after legs.
         </p>
       </div>
+
+      <button
+        onClick={() => setCalendarOpen(true)}
+        className="card mb-3 flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-panel-2"
+      >
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-panel-2 text-accent">
+          <IconCalendar size={20} />
+        </span>
+        <div className="min-w-0">
+          <div className="font-heading text-sm font-bold text-ink">Calendar</div>
+          <div className="text-xs text-dim">See the whole month - done, missed, and upcoming days</div>
+        </div>
+      </button>
+
+      <CalendarOverlay
+        open={calendarOpen}
+        onClose={() => setCalendarOpen(false)}
+        selectedDate={date}
+        onSelectDate={(iso) => router.push(`/plan?date=${iso}`)}
+      />
 
       <div className="card mb-3 p-4">
         <div className="space-y-1.5">
@@ -97,7 +119,8 @@ export function PlanClient({
                     Off
                   </ModeButton>
                 </div>
-                <div className="min-w-0 flex-1 truncate text-right text-xs text-dim">
+                <div className="flex min-w-0 flex-1 items-center justify-end gap-1.5 truncate text-right text-xs text-dim">
+                  {assigned?.off && <IconRest size={13} className="shrink-0 text-faint" />}
                   {assigned?.lift
                     ? SESSION_LABELS[assigned.lift].split(" - ")[0]
                     : assigned?.flex
@@ -159,20 +182,21 @@ export function PlanClient({
             >
               <div className="grid grid-cols-7 gap-1">
                 {option.schedule.days.map((d) => {
-                  const label = d.lift
-                    ? SESSION_LABELS[d.lift].split(" - ")[0].replace("Upper ", "U").replace("Lower ", "L")
-                    : d.off
-                      ? "Rest"
-                      : "Flex";
+                  // Full names, not "UA"/"LB" - those read as cryptic rather
+                  // than as Upper A / Lower B once you actually look at them.
+                  const label = d.lift ? SESSION_LABELS[d.lift].split(" - ")[0] : d.off ? "Rest" : "Flex";
                   return (
                     <div
                       key={d.weekday}
                       className="flex flex-col items-center gap-0.5 rounded-lg bg-panel px-0.5 py-1.5"
                     >
                       <span className="micro text-faint">{WEEKDAY_NAMES[d.weekday].slice(0, 1)}</span>
-                      <span className="text-[10.5px] font-medium leading-none text-ink">{label}</span>
+                      <span className="text-center text-[9.5px] font-medium leading-tight text-ink">
+                        {label}
+                      </span>
                       <span className="flex h-2.5 items-center">
                         {d.run && <IconRun size={10} className="text-accent" />}
+                        {d.off && <IconRest size={10} className="text-faint" />}
                       </span>
                     </div>
                   );

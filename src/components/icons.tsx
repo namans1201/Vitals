@@ -1,8 +1,12 @@
 /**
- * SVG icon set. No emoji anywhere in the UI - these are stroked outline
- * icons sized to the current font-size and inheriting currentColor, so they
- * sit correctly next to text in any palette.
+ * SVG icon set. No emoji anywhere in the UI - these are sized to the current
+ * font-size and inherit currentColor, so they sit correctly next to text in
+ * any palette. Run/workout/rest use Phosphor Icons (bold weight, MIT
+ * licensed) for proper illustrated glyphs; everything else here is a small
+ * hand-drawn stroked icon matching the same size/color API.
  */
+import { Barbell, Bed, PersonSimpleRun } from "@phosphor-icons/react";
+
 type IconProps = { className?: string; size?: number };
 
 function base(size: number, className?: string) {
@@ -31,21 +35,11 @@ export function IconToday({ className, size = 20 }: IconProps) {
 }
 
 export function IconWorkout({ className, size = 20 }: IconProps) {
-  return (
-    <svg {...base(size, className)}>
-      <path d="M4 9v6M20 9v6M7 7.5v9M17 7.5v9M7 12h10M2 11v2M22 11v2" />
-    </svg>
-  );
+  return <Barbell size={size} className={className} weight="bold" aria-hidden />;
 }
 
 export function IconRun({ className, size = 20 }: IconProps) {
-  return (
-    <svg {...base(size, className)}>
-      <circle cx="15.5" cy="4.5" r="2" />
-      <path d="M6 20.5l3-5 3.5-2.5-1.5-5 4 3.5 3 1" />
-      <path d="M9.5 15.5L6.5 13l-3 1.5" />
-    </svg>
-  );
+  return <PersonSimpleRun size={size} className={className} weight="bold" aria-hidden />;
 }
 
 export function IconFood({ className, size = 20 }: IconProps) {
@@ -98,6 +92,14 @@ export function IconPlus({ className, size = 20 }: IconProps) {
   );
 }
 
+export function IconMinus({ className, size = 20 }: IconProps) {
+  return (
+    <svg {...base(size, className)} strokeWidth={2}>
+      <path d="M5 12h14" />
+    </svg>
+  );
+}
+
 export function IconClose({ className, size = 20 }: IconProps) {
   return (
     <svg {...base(size, className)}>
@@ -123,12 +125,7 @@ export function IconDrop({ className, size = 20 }: IconProps) {
 }
 
 export function IconRest({ className, size = 20 }: IconProps) {
-  return (
-    <svg {...base(size, className)}>
-      <circle cx="12" cy="12" r="8.5" />
-      <path d="M8.5 12h7" />
-    </svg>
-  );
+  return <Bed size={size} className={className} weight="bold" aria-hidden />;
 }
 
 export function IconLogout({ className, size = 20 }: IconProps) {
@@ -153,6 +150,43 @@ export function IconChevronDown({ className, size = 20 }: IconProps) {
   return (
     <svg {...base(size, className)}>
       <path d="M5 8.5l7 7 7-7" />
+    </svg>
+  );
+}
+
+export function IconInfo({ className, size = 20 }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 11v5.5" />
+      <circle cx="12" cy="7.75" r="0.75" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function IconTimer({ className, size = 20 }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <circle cx="12" cy="13" r="8" />
+      <path d="M12 9v4l2.5 1.5M9.5 2.5h5" />
+    </svg>
+  );
+}
+
+export function IconTrophy({ className, size = 20 }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M7 4h10v5a5 5 0 01-10 0V4z" />
+      <path d="M7 5.5H4.5a2 2 0 002 3.5H7M17 5.5h2.5a2 2 0 01-2 3.5H17" />
+      <path d="M12 14v3M9 20.5h6M9.5 20.5c0-1.8.7-3 2.5-3s2.5 1.2 2.5 3" />
+    </svg>
+  );
+}
+
+export function IconFlame({ className, size = 20 }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M12 2.5s-5 5.2-5 9.7a5 5 0 0010 0c0-1.4-.6-2.4-1.2-3.3.1 1.5-.7 2.3-1.3 2.3-.8 0-1-1-.7-1.9C14.5 7 12 5 12 2.5z" />
     </svg>
   );
 }
