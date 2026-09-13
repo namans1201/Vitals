@@ -84,22 +84,20 @@ export function TodayClient({
           <p className="text-sm text-dim">No plan for this day yet.</p>
         ) : (
           <div className="space-y-2">
-            {today.run && (
-              <PlanRow Icon={IconRun} tone="accent" label="Morning" value="Run — easy, Zone 2" />
+            {/* A run and the flex day are the same slot when flex is chosen as
+                a run — show one unified row with the toggle, not two. */}
+            {today.run && !today.flex && (
+              <PlanRowRun date={date} label="Morning" initialDone={snapshot.ranDone} />
             )}
             {today.lift && (
               <PlanRow Icon={IconWorkout} tone="ink" label="Evening" value={SESSION_LABELS[today.lift]} />
             )}
-            {today.flex && (
-              <PlanRow
-                Icon={IconRun}
-                tone="dim"
-                label="Flexible"
-                value={
-                  flexChoice === "mobility" ? "Mobility / core — your call" : "Easy run or walk — your call"
-                }
-              />
-            )}
+            {today.flex &&
+              (flexChoice === "mobility" ? (
+                <PlanRow Icon={IconRest} tone="dim" label="Flexible" value="Mobility / core — your call" />
+              ) : (
+                <PlanRowRun date={date} label="Flexible" initialDone={snapshot.ranDone} />
+              ))}
             {today.off && <PlanRow Icon={IconRest} tone="dim" label="Rest" value="Strictly off." />}
           </div>
         )}
@@ -232,6 +230,51 @@ function PlanRow({
         {value}
       </span>
     </div>
+  );
+}
+
+/** The run row on Today — no duration/distance/HR fields, the watch owns
+ * those once the importer exists. This is only "did it happen", exactly
+ * like ticking a workout set. */
+function PlanRowRun({
+  date,
+  label,
+  initialDone,
+}: {
+  date: string;
+  label: string;
+  initialDone: boolean;
+}) {
+  const toast = useToast();
+  const [done, setDone] = useState(initialDone);
+
+  function toggle() {
+    const next = !done;
+    setDone(next);
+    patchDay(date, { ranDone: next }).catch(() => toast("Couldn't save — check your connection"));
+  }
+
+  return (
+    <button onClick={toggle} className="flex w-full items-center gap-2.5 text-left text-sm">
+      <span
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
+          done ? "bg-good text-white" : "bg-panel-2 text-accent"
+        }`}
+      >
+        <IconRun size={16} />
+      </span>
+      <span className="w-16 shrink-0 micro text-faint">{label}</span>
+      <span className={`flex-1 ${done ? "font-medium text-good" : "text-accent"}`}>
+        {done ? "Run done" : "Run — easy, Zone 2"}
+      </span>
+      <span
+        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-colors ${
+          done ? "border-good bg-good text-white" : "border-line bg-panel-2 text-transparent"
+        }`}
+      >
+        <IconCheck size={13} />
+      </span>
+    </button>
   );
 }
 

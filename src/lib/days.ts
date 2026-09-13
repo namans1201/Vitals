@@ -27,6 +27,7 @@ export async function getDaySnapshot(date: Date) {
     maxPushups: day?.maxPushups ?? null,
     notes: day?.notes ?? null,
     waterMl: day?.waterMl ?? 0,
+    ranDone: day?.ranDone ?? false,
     restingHr: day?.restingHr ?? null,
     sleepMinutes: day?.sleepMinutes ?? null,
     sleepStart: day?.sleepStart ?? null,

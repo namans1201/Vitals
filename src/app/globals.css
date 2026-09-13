@@ -90,6 +90,50 @@ h4 {
   box-shadow: var(--shadow-card);
 }
 
+/*
+ * Liquid glass — the navbar surfaces only (see developer.apple.com's
+ * Liquid Glass overview: a translucent material that blurs and saturates
+ * what's behind it, catches light along its top edge, and sits with a
+ * soft ambient shadow rather than a hard border). Shape (pill / rounded
+ * rect) comes from whatever border-radius the component sets; this class
+ * only supplies the material.
+ */
+.glass {
+  position: relative;
+  background: color-mix(in srgb, var(--panel) 58%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid color-mix(in srgb, white 75%, var(--line) 25%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, white 85%, transparent),
+    0 1px 1px rgb(17 17 17 / 0.04),
+    0 16px 40px rgb(17 17 17 / 0.10);
+}
+
+/* The specular sheen along the top — a soft light-catching highlight that
+ * fades out by the vertical midpoint, layered above the blur. */
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, white 40%, transparent) 0%,
+    transparent 55%
+  );
+  mix-blend-mode: overlay;
+}
+
+/* Flat variant for edges that sit flush against the viewport (the mobile
+ * top/bottom bars) — same material, no floating shadow or rim. */
+.glass-flush {
+  background: color-mix(in srgb, var(--panel) 68%, transparent);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

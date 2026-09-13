@@ -68,6 +68,10 @@ model DailyLog {
   maxPushups       Int?
   notes            String?
   waterMl          Int      @default(0)
+  // Did today's planned run happen? The watch owns pace/distance/HR once the
+  // Health Connect importer (Phase 2) exists — this is only the adherence
+  // checkbox, mirroring how a workout set gets ticked.
+  ranDone          Boolean  @default(false)
   // ---- from the watch ----
   restingHr        Int?
   sleepMinutes     Int?

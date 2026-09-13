@@ -24,14 +24,14 @@ const amulya = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Vitals",
+  title: "Naman",
   description: "Training and nutrition, one day at a time",
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#F7F8F5",
+  themeColor: "#FAFAFA",
 };
 
 export default function RootLayout({

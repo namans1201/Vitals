@@ -7,7 +7,6 @@ import {
   IconCheck,
   IconFood,
   IconLogout,
-  IconRun,
   IconToday,
   IconWeek,
   IconWorkout,
@@ -16,7 +15,6 @@ import {
 const NAV_ITEMS = [
   { href: "/", label: "Today", Icon: IconToday },
   { href: "/workout", label: "Workout", Icon: IconWorkout },
-  { href: "/runs", label: "Runs", Icon: IconRun },
   { href: "/nutrition", label: "Food", Icon: IconFood },
   { href: "/plan", label: "Week", Icon: IconWeek },
 ] as const;
@@ -27,7 +25,7 @@ function Wordmark() {
       <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent text-white">
         <IconCheck size={15} />
       </span>
-      <span className="font-heading text-base font-bold text-ink">Vitals</span>
+      <span className="font-heading text-base font-bold text-ink">Naman</span>
     </Link>
   );
 }
@@ -37,13 +35,10 @@ export function AppNav() {
 
   return (
     <>
-      {/* Tablet & desktop — inset rounded bar, floating over the page. */}
+      {/* Tablet & desktop — inset rounded bar in liquid glass, floating over the page. */}
       <header className="sticky top-0 z-20 hidden bg-bg sm:block">
         <div className="mx-auto max-w-5xl px-4 pt-4">
-          <div
-            className="card flex items-center justify-between gap-4 px-4 py-2.5"
-            style={{ boxShadow: "var(--shadow-float)" }}
-          >
+          <div className="glass flex items-center justify-between gap-4 rounded-2xl px-4 py-2.5">
             <Wordmark />
             <nav className="flex items-center gap-1">
               {NAV_ITEMS.map(({ href, label, Icon }) => {
@@ -77,8 +72,9 @@ export function AppNav() {
         </div>
       </header>
 
-      {/* Phone — minimal top bar, nav moves to the bottom (thumb reach). */}
-      <header className="sticky top-0 z-20 flex items-center justify-between border-b border-line bg-panel/95 px-4 py-3 backdrop-blur sm:hidden">
+      {/* Phone — minimal top bar in the same glass material, nav moves to
+          the bottom (thumb reach). */}
+      <header className="glass-flush sticky top-0 z-20 flex items-center justify-between border-b border-line/70 px-4 py-3 sm:hidden">
         <Wordmark />
         <form action={logout}>
           <button
@@ -92,7 +88,7 @@ export function AppNav() {
       </header>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-20 flex border-t border-line bg-panel/95 backdrop-blur sm:hidden"
+        className="glass-flush fixed inset-x-0 bottom-0 z-20 flex border-t border-line/70 sm:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {NAV_ITEMS.map(({ href, label, Icon }) => {

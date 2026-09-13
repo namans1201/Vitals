@@ -19,6 +19,7 @@ export const dailyLogPatchSchema = z.object({
   maxPushups: z.number().int().min(0).max(500).nullable().optional(),
   notes: z.string().max(5000).nullable().optional(),
   waterMl: z.number().int().min(0).max(20000).optional(),
+  ranDone: z.boolean().optional(),
   restingHr: z.number().int().min(20).max(220).nullable().optional(),
   sleepMinutes: z.number().int().min(0).max(1440).nullable().optional(),
   /** "HH:mm" bedtime in Asia/Kolkata — converted server-side via bedtimeToUtc. */

@@ -15,7 +15,7 @@ export default async function LoginPage({
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-white">
             <IconCheck size={17} />
           </span>
-          <h1 className="font-heading text-lg font-bold text-ink">Vitals</h1>
+          <h1 className="font-heading text-lg font-bold text-ink">Naman</h1>
         </div>
         <p className="text-sm text-dim">Enter the password to continue.</p>
 
