@@ -104,9 +104,18 @@ h4 {
  * page itself, and the "glass" simply disappears. A grey base still lets
  * real content show through blurred when it scrolls underneath, while
  * staying visibly a distinct floating panel even at rest.
+ *
+ * No `position` here on purpose: this engine only composites
+ * `backdrop-filter` on an element that is itself `position: fixed` — not
+ * `relative`, not `sticky`, and not `relative` nested under a `sticky`/
+ * `fixed` ancestor (all confirmed dead ends with a striped test backdrop —
+ * the blur silently no-ops, computed style still reports it "applied").
+ * Every element using `.glass`/`.glass-flush` in AppNav.tsx carries Tailwind's
+ * `fixed` utility directly for that reason; don't reintroduce `relative`
+ * here; as an unlayered rule it would outrank that utility class and
+ * silently break compositing again.
  */
 .glass {
-  position: relative;
   background: rgba(142, 142, 148, 0.24);
   backdrop-filter: blur(28px) saturate(190%);
   -webkit-backdrop-filter: blur(28px) saturate(190%);
