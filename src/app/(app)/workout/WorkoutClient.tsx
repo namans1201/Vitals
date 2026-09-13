@@ -6,6 +6,7 @@ import { DateNav } from "@/components/DateNav";
 import { useToast } from "@/components/Toast";
 import { createWorkout, addWorkoutSet, patchWorkoutSet } from "@/lib/api-client";
 import { SESSION_LABELS, type SessionType } from "@/domain/sessionTemplates";
+import { IconPlus, IconRun } from "@/components/icons";
 import type { DayAssignment } from "@/domain/weekPlan";
 import type { ProgressionResult } from "@/domain/progression";
 import type { Exercise, WorkoutSet } from "@/generated/prisma/client";
@@ -61,16 +62,16 @@ export function WorkoutClient({
     <div className="mx-auto max-w-lg">
       <DateNav date={date} basePath="/workout" />
 
-      <div className="mb-3 rounded-xl border border-line bg-panel p-4">
-        <h2 className="mb-1 text-[11px] font-semibold uppercase tracking-[.06em] text-faint">
+      <div className="card mb-3 p-4">
+        <span className="micro-pill mb-2">
           {workout ? SESSION_LABELS[workout.sessionType as SessionType] ?? workout.sessionType : "Session"}
-        </h2>
+        </span>
         {workout && totalSets > 0 && (
           <>
-            <div className="mb-1 text-xs text-dim">
+            <div className="mb-1 mt-1 text-xs text-dim">
               {doneSets} / {totalSets} sets complete
             </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-panel-2">
+            <div className="h-2 overflow-hidden rounded-full bg-panel-2">
               <div
                 className="h-full rounded-full bg-good transition-[width]"
                 style={{ width: `${totalSets ? (doneSets / totalSets) * 100 : 0}%` }}
@@ -79,12 +80,15 @@ export function WorkoutClient({
           </>
         )}
         {today?.run && (
-          <div className="mt-2 text-xs text-accent">Morning run today — easy, Zone 2.</div>
+          <div className="mt-3 flex items-center gap-1.5 text-xs text-dim">
+            <IconRun size={14} className="text-accent" />
+            Morning run today — easy, Zone 2.
+          </div>
         )}
       </div>
 
       {!workout && (
-        <div className="mb-3 rounded-xl border border-line bg-panel p-4">
+        <div className="card mb-3 p-4">
           <p className="mb-3 text-sm text-dim">
             {today?.off
               ? "Strictly off today. Nothing to do — that's the plan working."
@@ -100,7 +104,7 @@ export function WorkoutClient({
                 key={s}
                 disabled={busy}
                 onClick={() => startSession(s)}
-                className="rounded-lg border border-line bg-panel-2 px-3 py-2 text-sm text-ink disabled:opacity-50"
+                className="rounded-full border border-line bg-panel-2 px-4 py-2 text-sm text-ink transition-colors hover:bg-line disabled:opacity-50"
               >
                 {SESSION_LABELS[s]}
               </button>
@@ -108,7 +112,7 @@ export function WorkoutClient({
             <button
               disabled={busy}
               onClick={() => startSession("custom")}
-              className="rounded-lg border border-accent bg-accent/10 px-3 py-2 text-sm text-accent disabled:opacity-50"
+              className="rounded-full bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
               Custom session
             </button>
@@ -132,9 +136,9 @@ function ExerciseCard({ workoutId, group }: { workoutId: number; group: Exercise
   const { exercise, sets, lastTime, progression: prog } = group;
 
   return (
-    <div className="mb-3 rounded-xl border border-line bg-panel p-4">
+    <div className="card mb-3 p-4">
       <div className="mb-1 flex items-baseline justify-between gap-2">
-        <h3 className="text-sm font-semibold text-ink">{exercise.name}</h3>
+        <h3 className="font-heading text-sm font-bold text-ink">{exercise.name}</h3>
         <span className="shrink-0 text-xs tabular-nums text-faint">
           {sets.length} × {exercise.defaultRepsMin}-{exercise.defaultRepsMax}
         </span>
@@ -192,7 +196,7 @@ function SetRow({ workoutId, set, index }: { workoutId: number; set: WorkoutSet;
     <div className="flex items-center gap-1.5">
       <button
         onClick={toggleCompleted}
-        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border text-xs font-semibold ${
+        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition-colors ${
           completed ? "border-good bg-good text-white" : "border-line bg-panel-2 text-faint"
         }`}
       >
@@ -204,7 +208,7 @@ function SetRow({ workoutId, set, index }: { workoutId: number; set: WorkoutSet;
         value={reps}
         onChange={(e) => setReps(e.target.value)}
         onBlur={() => save({ reps: reps === "" ? null : Number(reps) })}
-        className="h-11 w-16 rounded-lg border border-line bg-panel-2 px-2 text-center text-sm text-ink outline-none focus:border-accent"
+        className="h-11 w-16 rounded-xl border border-line bg-panel-2 px-2 text-center text-sm text-ink outline-none focus:border-accent"
       />
       <input
         type="number"
@@ -213,7 +217,7 @@ function SetRow({ workoutId, set, index }: { workoutId: number; set: WorkoutSet;
         value={weightKg}
         onChange={(e) => setWeightKg(e.target.value)}
         onBlur={() => save({ weightKg: weightKg === "" ? null : Number(weightKg) })}
-        className="h-11 w-16 rounded-lg border border-line bg-panel-2 px-2 text-center text-sm text-ink outline-none focus:border-accent"
+        className="h-11 w-16 rounded-xl border border-line bg-panel-2 px-2 text-center text-sm text-ink outline-none focus:border-accent"
       />
       <input
         type="number"
@@ -221,7 +225,7 @@ function SetRow({ workoutId, set, index }: { workoutId: number; set: WorkoutSet;
         value={rir}
         onChange={(e) => setRir(e.target.value)}
         onBlur={() => save({ rir: rir === "" ? null : Number(rir) })}
-        className="h-11 w-16 rounded-lg border border-line bg-panel-2 px-2 text-center text-sm text-ink outline-none focus:border-accent"
+        className="h-11 w-16 rounded-xl border border-line bg-panel-2 px-2 text-center text-sm text-ink outline-none focus:border-accent"
       />
     </div>
   );
@@ -259,15 +263,13 @@ function AddExercise({
   }
 
   return (
-    <div className="mb-3 rounded-xl border border-line bg-panel p-4">
-      <h2 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[.06em] text-faint">
-        Add an exercise
-      </h2>
+    <div className="card mb-3 p-4">
+      <span className="micro-pill mb-3">Add an exercise</span>
       <div className="flex gap-2">
         <select
           value={selectedId}
           onChange={(e) => setSelectedId(e.target.value)}
-          className="h-11 flex-1 rounded-lg border border-line bg-panel-2 px-3 text-sm text-ink outline-none focus:border-accent"
+          className="h-11 flex-1 rounded-xl border border-line bg-panel-2 px-3 text-sm text-ink outline-none focus:border-accent"
         >
           <option value="">Choose from the library…</option>
           {options.map((e) => (
@@ -279,8 +281,9 @@ function AddExercise({
         <button
           onClick={add}
           disabled={!selectedId || busy}
-          className="h-11 shrink-0 rounded-lg bg-accent px-4 text-sm font-medium text-white disabled:opacity-50"
+          className="flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-accent px-4 text-sm font-medium text-white disabled:opacity-50"
         >
+          <IconPlus size={16} />
           Add
         </button>
       </div>

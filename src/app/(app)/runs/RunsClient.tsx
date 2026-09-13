@@ -32,7 +32,7 @@ const ZONE_COLORS: Record<Zone, string> = {
   z2: CHART_COLORS.good,
   z3: CHART_COLORS.caution,
   z4: CHART_COLORS.bad,
-  z5: "#b23a2e",
+  z5: "#991b1b",
 };
 
 function paceMinPerKm(durationSec: number, distanceM: number | null): number | null {
@@ -142,13 +142,13 @@ export function RunsClient({
 
   return (
     <div className="mx-auto max-w-lg">
-      <div className="mb-3 rounded-xl border border-line bg-panel p-4">
-        <h2 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[.06em] text-faint">Log a run</h2>
+      <div className="card mb-3 p-4">
+        <span className="micro-pill mb-3">Log a run</span>
         <div className="mb-2 flex flex-wrap gap-2">
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="h-11 flex-1 rounded-lg border border-line bg-panel-2 px-3 text-sm text-ink outline-none focus:border-accent"
+            className="h-11 flex-1 rounded-xl border border-line bg-panel-2 px-3 text-sm text-ink outline-none focus:border-accent"
           >
             {RUN_TYPES.map((t) => (
               <option key={t.value} value={t.value}>
@@ -163,7 +163,7 @@ export function RunsClient({
             placeholder="Minutes"
             value={durationMin}
             onChange={(e) => setDurationMin(e.target.value)}
-            className="h-11 min-w-[90px] flex-1 rounded-lg border border-line bg-panel-2 px-3 text-sm text-ink outline-none focus:border-accent"
+            className="h-11 min-w-[90px] flex-1 rounded-xl border border-line bg-panel-2 px-3 text-sm text-ink outline-none focus:border-accent"
           />
           <input
             type="number"
@@ -171,21 +171,21 @@ export function RunsClient({
             placeholder="Distance km"
             value={distanceKm}
             onChange={(e) => setDistanceKm(e.target.value)}
-            className="h-11 min-w-[90px] flex-1 rounded-lg border border-line bg-panel-2 px-3 text-sm text-ink outline-none focus:border-accent"
+            className="h-11 min-w-[90px] flex-1 rounded-xl border border-line bg-panel-2 px-3 text-sm text-ink outline-none focus:border-accent"
           />
           <input
             type="number"
             placeholder="Avg HR"
             value={avgHr}
             onChange={(e) => setAvgHr(e.target.value)}
-            className="h-11 min-w-[90px] flex-1 rounded-lg border border-line bg-panel-2 px-3 text-sm text-ink outline-none focus:border-accent"
+            className="h-11 min-w-[90px] flex-1 rounded-xl border border-line bg-panel-2 px-3 text-sm text-ink outline-none focus:border-accent"
           />
           <input
             type="number"
             placeholder="Max HR"
             value={maxHr}
             onChange={(e) => setMaxHr(e.target.value)}
-            className="h-11 min-w-[90px] flex-1 rounded-lg border border-line bg-panel-2 px-3 text-sm text-ink outline-none focus:border-accent"
+            className="h-11 min-w-[90px] flex-1 rounded-xl border border-line bg-panel-2 px-3 text-sm text-ink outline-none focus:border-accent"
           />
         </div>
 
@@ -205,27 +205,25 @@ export function RunsClient({
           onChange={(e) => setNotes(e.target.value)}
           placeholder="How did it feel? Breathing, legs, pace…"
           rows={2}
-          className="mb-2 w-full resize-y rounded-lg border border-line bg-panel-2 p-3 text-sm text-ink outline-none focus:border-accent"
+          className="mb-2 w-full resize-y rounded-xl border border-line bg-panel-2 p-3 text-sm text-ink outline-none focus:border-accent"
         />
         <button
           onClick={submit}
           disabled={busy}
-          className="h-11 w-full rounded-lg bg-accent text-sm font-medium text-white disabled:opacity-50"
+          className="h-11 w-full rounded-full bg-accent text-sm font-medium text-white disabled:opacity-50"
         >
           Log run
         </button>
       </div>
 
-      <div className="mb-3 rounded-xl border border-line bg-panel p-4 text-xs text-dim">
-        <b className="text-accent">Zone 2 = 115–134 bpm</b> at your age — roughly 60–70% of max HR.
+      <div className="card mb-3 p-4 text-xs text-dim">
+        <b className="text-ink">Zone 2 = 115–134 bpm</b> at your age — roughly 60–70% of max HR.
         ~80% of your running should live here.
       </div>
 
       {totalDistSec > 0 && (
-        <div className="mb-3 rounded-xl border border-line bg-panel p-4">
-          <h2 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[.06em] text-faint">
-            Zone distribution — last {runs.length} runs
-          </h2>
+        <div className="card mb-3 p-4">
+          <span className="micro-pill mb-3">Zone distribution — last {runs.length} runs</span>
           <div className="flex h-3 overflow-hidden rounded-full">
             {(Object.keys(distribution) as Zone[]).map((z) =>
               distribution[z] > 0 ? (
@@ -265,7 +263,12 @@ export function RunsClient({
             />
             <Tooltip
               formatter={(v) => formatPace(typeof v === "number" ? v : null)}
-              contentStyle={{ background: "#171a21", border: `1px solid ${CHART_COLORS.line}` }}
+              contentStyle={{
+                background: CHART_COLORS.panel,
+                border: `1px solid ${CHART_COLORS.line}`,
+                borderRadius: 10,
+                fontSize: 12,
+              }}
             />
             <Line type="monotone" dataKey="pace" stroke={CHART_COLORS.accent} dot={false} strokeWidth={2} />
           </LineChart>
@@ -278,20 +281,25 @@ export function RunsClient({
             <CartesianGrid stroke={CHART_COLORS.line} strokeDasharray="3 3" />
             <XAxis dataKey="date" stroke={CHART_COLORS.faint} fontSize={11} />
             <YAxis stroke={CHART_COLORS.faint} fontSize={11} width={30} />
-            <Tooltip contentStyle={{ background: "#171a21", border: `1px solid ${CHART_COLORS.line}` }} />
+            <Tooltip
+              contentStyle={{
+                background: CHART_COLORS.panel,
+                border: `1px solid ${CHART_COLORS.line}`,
+                borderRadius: 10,
+                fontSize: 12,
+              }}
+            />
             <Line type="monotone" dataKey="hr" stroke={CHART_COLORS.sleep} dot={false} strokeWidth={2} />
           </LineChart>
         </ChartCard>
       )}
 
-      <div className="mb-3 rounded-xl border border-line bg-panel p-4">
-        <h2 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[.06em] text-faint">
-          Recent runs
-        </h2>
+      <div className="card mb-3 p-4">
+        <span className="micro-pill mb-3">Recent runs</span>
         {runs.length === 0 ? (
           <p className="py-4 text-center text-sm text-faint">No runs logged yet</p>
         ) : (
-          <div className="divide-y divide-line/50">
+          <div className="divide-y divide-line/60">
             {runs.map((r) => (
               <div key={r.id} className="flex items-center justify-between gap-2 py-2 text-sm">
                 <div className="text-dim">
@@ -300,7 +308,10 @@ export function RunsClient({
                   {r.distanceM ? ` · ${(r.distanceM / 1000).toFixed(2)} km` : ""}
                   {r.distanceM ? ` · ${formatPace(paceMinPerKm(r.durationSec, r.distanceM))}/km` : ""}
                 </div>
-                <button onClick={() => remove(r.id)} className="shrink-0 text-xs text-bad">
+                <button
+                  onClick={() => remove(r.id)}
+                  className="shrink-0 rounded-full px-2.5 py-1 text-xs text-bad hover:bg-bad/10"
+                >
                   Delete
                 </button>
               </div>
@@ -314,19 +325,19 @@ export function RunsClient({
 
 function Kpi({ label, value, accent }: { label: string; value: string; accent?: string }) {
   return (
-    <div className="rounded-lg border border-line bg-panel-2 py-2 text-center">
+    <div className="rounded-xl border border-line bg-panel-2 py-2 text-center">
       <div className="tabular-nums text-lg font-bold" style={accent ? { color: accent } : undefined}>
         {value}
       </div>
-      <div className="text-[9px] uppercase tracking-[.06em] text-faint">{label}</div>
+      <div className="micro text-faint">{label}</div>
     </div>
   );
 }
 
 function ChartCard({ title, children }: { title: string; children: React.ReactElement }) {
   return (
-    <div className="mb-3 rounded-xl border border-line bg-panel p-4">
-      <h2 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[.06em] text-faint">{title}</h2>
+    <div className="card mb-3 p-4">
+      <span className="micro-pill mb-3">{title}</span>
       <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
           {children}

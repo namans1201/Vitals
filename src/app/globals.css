@@ -1,23 +1,25 @@
 @import "tailwindcss";
 
 /*
- * Design tokens — BUILD_SPEC.md §9. Single dark theme, deliberately: this
- * app gets opened at 6:30 AM and 11 PM, and a bright screen at either hour
- * is hostile. Do not add a light theme unless asked.
+ * Light theme — Near-mono palette. Greys and white carry everything; a
+ * single green means "done" and nothing else competes with it. Token NAMES
+ * are stable so components never hardcode a colour.
  */
 :root {
-  --bg: #0f1115; /* page ground */
-  --panel: #171a21; /* cards */
-  --panel-2: #1e222b; /* inputs, wells */
-  --line: #2a2f3a; /* borders */
-  --ink: #e8eaed; /* primary text */
-  --dim: #9aa3b2; /* secondary text */
-  --faint: #6b7383; /* labels, captions */
-  --accent: #5b8def; /* interactive, primary action */
-  --green: #3fb37f; /* good / done / on-target */
-  --amber: #e0a355; /* caution / borderline */
-  --red: #e0685c; /* bad / out of range */
-  --purple: #a78bda; /* sleep */
+  --bg: #fafafa;
+  --panel: #ffffff;
+  --panel-2: #f4f4f5;
+  --line: #e5e7eb;
+  --ink: #111111;
+  --dim: #6b7280;
+  --faint: #9ca3af;
+  --accent: #111111;
+  --green: #10b981;
+  --amber: #d97706;
+  --red: #dc2626;
+
+  --shadow-card: 0 1px 2px rgb(17 17 17 / 0.03), 0 6px 20px rgb(17 17 17 / 0.05);
+  --shadow-float: 0 2px 4px rgb(17 17 17 / 0.04), 0 12px 28px rgb(17 17 17 / 0.08);
 }
 
 @theme inline {
@@ -32,19 +34,60 @@
   --color-good: var(--green);
   --color-caution: var(--amber);
   --color-bad: var(--red);
-  --color-sleep: var(--purple);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --font-heading: var(--font-hind);
+  --font-body: var(--font-amulya);
 }
 
 body {
   background: var(--bg);
   color: var(--ink);
+  font-family: var(--font-amulya), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Tabular figures on every column of numbers — §9 */
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-hind), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Tabular figures on every column of numbers. */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
+}
+
+/* Uppercase micro-label, used bare for field names. */
+.micro {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* The same micro-label, pill-mounted — used for one eyebrow per card/section,
+ * never stacked, so it stays a quiet accent rather than decoration. */
+.micro-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--dim);
+  background: var(--panel-2);
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-card);
 }
 
 @media (prefers-reduced-motion: reduce) {

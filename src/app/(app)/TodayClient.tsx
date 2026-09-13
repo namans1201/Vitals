@@ -6,6 +6,7 @@ import { DateNav } from "@/components/DateNav";
 import { useToast } from "@/components/Toast";
 import { patchDay } from "@/lib/api-client";
 import { SESSION_LABELS } from "@/domain/sessionTemplates";
+import { IconCheck, IconFood, IconRest, IconRun, IconStar, IconWorkout } from "@/components/icons";
 import type { DayAssignment } from "@/domain/weekPlan";
 import type { DaySnapshot } from "@/lib/days";
 
@@ -69,70 +70,75 @@ export function TodayClient({
       <DateNav date={date} basePath="/" />
 
       {weekProblems.length > 0 && (
-        <div className="mb-3 rounded-lg border-l-2 border-caution bg-caution/5 px-3 py-2.5 text-xs text-dim">
+        <div className="mb-3 rounded-xl border-l-2 border-caution bg-caution/5 px-3 py-2.5 text-xs text-dim">
           This week&apos;s picks don&apos;t make a legal schedule.{" "}
-          <Link href={`/plan?date=${date}`} className="text-accent underline">
+          <Link href={`/plan?date=${date}`} className="font-medium text-ink underline">
             Fix the week
           </Link>
         </div>
       )}
 
-      <div className="mb-3 rounded-xl border border-line bg-panel p-4">
-        <h2 className="mb-2 text-[11px] font-semibold uppercase tracking-[.06em] text-faint">
-          Today
-        </h2>
+      <div className="card mb-3 p-4">
+        <span className="micro-pill mb-3">Today</span>
         {today === null ? (
           <p className="text-sm text-dim">No plan for this day yet.</p>
         ) : (
-          <div className="space-y-1.5">
-            {today.run && <PlanRow tone="accent" label="Morning" value="Run — easy, Zone 2" />}
+          <div className="space-y-2">
+            {today.run && (
+              <PlanRow Icon={IconRun} tone="accent" label="Morning" value="Run — easy, Zone 2" />
+            )}
             {today.lift && (
-              <PlanRow tone="ink" label="Evening" value={SESSION_LABELS[today.lift]} />
+              <PlanRow Icon={IconWorkout} tone="ink" label="Evening" value={SESSION_LABELS[today.lift]} />
             )}
             {today.flex && (
               <PlanRow
+                Icon={IconRun}
                 tone="dim"
                 label="Flexible"
-                value={flexChoice === "mobility" ? "Mobility / core — your call" : "Easy run or walk — your call"}
+                value={
+                  flexChoice === "mobility" ? "Mobility / core — your call" : "Easy run or walk — your call"
+                }
               />
             )}
-            {today.off && <PlanRow tone="dim" label="Rest" value="Strictly off. Nothing to do." />}
+            {today.off && <PlanRow Icon={IconRest} tone="dim" label="Rest" value="Strictly off." />}
           </div>
         )}
         {today?.lift && (
           <Link
             href={`/workout?date=${date}`}
-            className="mt-3 flex h-11 items-center justify-center rounded-lg bg-accent text-sm font-medium text-white"
+            className="mt-4 flex h-11 items-center justify-center rounded-full bg-accent text-sm font-medium text-white transition-opacity hover:opacity-90"
           >
             Open the session
           </Link>
         )}
       </div>
 
-      <div className="mb-3 rounded-xl border border-line bg-panel p-4">
-        <div className="mb-2 flex items-baseline justify-between">
-          <h2 className="text-[11px] font-semibold uppercase tracking-[.06em] text-faint">Protein</h2>
-          <Link href="/nutrition" className="text-xs text-accent">
+      <div className="card mb-3 p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <span className="micro-pill">Protein</span>
+          <Link
+            href="/nutrition"
+            className="flex items-center gap-1.5 text-xs font-medium text-ink hover:text-dim"
+          >
+            <IconFood size={14} />
             Log food
           </Link>
         </div>
-        <div className="mb-1 h-1.5 overflow-hidden rounded-full bg-panel-2">
+        <div className="mb-2 h-2 overflow-hidden rounded-full bg-panel-2">
           <div
             className={`h-full rounded-full transition-[width] ${proteinPct >= 100 ? "bg-good" : "bg-caution"}`}
             style={{ width: `${proteinPct}%` }}
           />
         </div>
-        <div className="text-lg font-bold text-ink">
+        <div className="font-heading text-xl font-bold text-ink">
           <span className="tabular-nums">{Math.round(proteinSoFar)}</span>
           <span className="text-sm font-normal text-faint"> / {proteinTargetG} g</span>
         </div>
       </div>
 
-      <div className="mb-3 rounded-xl border border-line bg-panel p-4">
-        <h2 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[.06em] text-faint">
-          Checklist
-        </h2>
-        <div className="divide-y divide-line/50">
+      <div className="card mb-3 p-4">
+        <span className="micro-pill mb-1">Checklist</span>
+        <div className="divide-y divide-line/60">
           {priorityItems.map((item) => (
             <ChecklistRow
               key={item.key}
@@ -143,9 +149,9 @@ export function TodayClient({
           ))}
         </div>
         {priorityItems.length > 0 && otherItems.length > 0 && (
-          <div className="my-2 border-t border-line" />
+          <div className="my-1 border-t border-line" />
         )}
-        <div className="divide-y divide-line/50">
+        <div className="divide-y divide-line/60">
           {otherItems.map((item) => (
             <ChecklistRow
               key={item.key}
@@ -157,17 +163,15 @@ export function TodayClient({
         </div>
       </div>
 
-      <div className="mb-3 rounded-xl border border-line bg-panel p-4">
-        <h2 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[.06em] text-faint">
-          Water
-        </h2>
-        <div className="mb-2 h-1.5 overflow-hidden rounded-full bg-panel-2">
+      <div className="card mb-3 p-4">
+        <span className="micro-pill mb-3">Water</span>
+        <div className="mb-2 h-2 overflow-hidden rounded-full bg-panel-2">
           <div
             className="h-full rounded-full bg-accent transition-[width]"
             style={{ width: `${Math.min(100, (waterCells / WATER_CELLS) * 100)}%` }}
           />
         </div>
-        <div className="mb-2 text-sm text-dim">
+        <div className="mb-3 text-sm text-dim">
           <span className="tabular-nums font-semibold text-ink">{waterCells}</span> / {WATER_CELLS} ×{" "}
           {WATER_ML_PER_CELL} ml
         </div>
@@ -176,29 +180,27 @@ export function TodayClient({
             <button
               key={i}
               onClick={() => setWaterCells(i + 1)}
-              className={`flex h-11 w-11 items-center justify-center rounded-lg border text-sm ${
+              className={`flex h-11 w-11 items-center justify-center rounded-xl border transition-colors ${
                 i < waterCells
-                  ? "border-accent bg-accent/20 text-accent"
-                  : "border-line bg-panel-2 text-faint"
+                  ? "border-accent bg-accent text-white"
+                  : "border-line bg-panel-2 text-transparent"
               }`}
             >
-              {i < waterCells ? "✓" : ""}
+              <IconCheck size={16} />
             </button>
           ))}
         </div>
       </div>
 
-      <div className="mb-3 rounded-xl border border-line bg-panel p-4">
-        <h2 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[.06em] text-faint">
-          Notes
-        </h2>
+      <div className="card mb-3 p-4">
+        <span className="micro-pill mb-3">Notes</span>
         <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           onBlur={saveNotes}
           placeholder="Energy, soreness, anything…"
           rows={2}
-          className="w-full resize-y rounded-lg border border-line bg-panel-2 p-3 text-sm text-ink outline-none focus:border-accent"
+          className="w-full resize-y rounded-xl border border-line bg-panel-2 p-3 text-sm text-ink outline-none focus:border-accent"
         />
       </div>
     </div>
@@ -209,15 +211,24 @@ function PlanRow({
   label,
   value,
   tone,
+  Icon,
 }: {
   label: string;
   value: string;
   tone: "accent" | "ink" | "dim";
+  Icon: (props: { size?: number; className?: string }) => React.ReactElement;
 }) {
   return (
-    <div className="flex gap-2 text-sm">
-      <span className="w-16 shrink-0 text-[11px] uppercase tracking-[.06em] text-faint">{label}</span>
-      <span className={tone === "accent" ? "text-accent" : tone === "ink" ? "text-ink" : "text-dim"}>
+    <div className="flex items-center gap-2.5 text-sm">
+      <span
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-panel-2 ${
+          tone === "accent" ? "text-accent" : tone === "ink" ? "text-ink" : "text-faint"
+        }`}
+      >
+        <Icon size={16} />
+      </span>
+      <span className="w-16 shrink-0 micro text-faint">{label}</span>
+      <span className={tone === "accent" ? "text-accent" : tone === "ink" ? "font-medium text-ink" : "text-dim"}>
         {value}
       </span>
     </div>
@@ -240,15 +251,15 @@ function ChecklistRow({
       className="flex w-full items-center gap-2.5 py-2.5 text-left text-sm"
     >
       <span
-        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-xs ${
-          item.done ? "border-good bg-good text-white" : "border-line bg-panel-2"
+        className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md border transition-colors ${
+          item.done ? "border-good bg-good text-white" : "border-line bg-panel-2 text-transparent"
         }`}
       >
-        {item.done ? "✓" : ""}
+        <IconCheck size={13} />
       </span>
-      <span className={item.done ? "text-good" : "text-dim"}>
+      <span className={`flex items-center gap-1.5 ${item.done ? "text-good" : "text-dim"}`}>
         {label}
-        {item.priority && <span className="ml-1 text-caution">★</span>}
+        {item.priority && <IconStar size={11} className="text-caution" />}
       </span>
     </button>
   );

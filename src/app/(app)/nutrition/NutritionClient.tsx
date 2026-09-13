@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/Toast";
 import { createMeal, deleteMeal } from "@/lib/api-client";
+import { IconClose, IconPlus } from "@/components/icons";
 import type { FoodItem, Meal, MealPreset } from "@/generated/prisma/client";
 
 type Tab = "meals" | "foods";
@@ -65,21 +66,19 @@ export function NutritionClient({
 
   return (
     <div className="mx-auto max-w-lg">
-      <div className="mb-3 rounded-xl border border-line bg-panel p-4">
-        <h2 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[.06em] text-faint">
-          Protein — target {proteinTargetG} g
-        </h2>
-        <div className="mb-1 h-2 overflow-hidden rounded-full bg-panel-2">
+      <div className="card mb-3 p-4">
+        <span className="micro-pill mb-3">Protein — target {proteinTargetG} g</span>
+        <div className="mb-2 h-2 overflow-hidden rounded-full bg-panel-2">
           <div
             className={`h-full rounded-full transition-[width] ${proteinPct >= 100 ? "bg-good" : "bg-caution"}`}
             style={{ width: `${proteinPct}%` }}
           />
         </div>
-        <div className="text-2xl font-bold text-ink">
+        <div className="font-heading text-2xl font-bold text-ink">
           <span className="tabular-nums">{Math.round(totalProtein)}</span>
           <span className="text-sm font-normal text-faint"> / {proteinTargetG} g</span>
         </div>
-        <div className="mt-0.5 text-xs text-faint">
+        <div className="mt-1 text-xs text-faint">
           {remaining > 0 ? (
             <>
               <span className="tabular-nums text-caution">{Math.round(remaining)} g</span> still to go ·{" "}
@@ -91,7 +90,7 @@ export function NutritionClient({
         </div>
       </div>
 
-      <div className="mb-3 flex gap-1 rounded-lg border border-line bg-panel-2 p-1">
+      <div className="mb-3 flex gap-1 rounded-full border border-line bg-panel-2 p-1">
         <TabButton active={tab === "meals"} onClick={() => setTab("meals")}>
           My meals
         </TabButton>
@@ -101,8 +100,8 @@ export function NutritionClient({
       </div>
 
       {tab === "meals" && (
-        <div className="mb-3 rounded-xl border border-line bg-panel p-4">
-          <div className="divide-y divide-line/50">
+        <div className="card mb-3 p-4">
+          <div className="divide-y divide-line/60">
             {presets.map((preset) => (
               <button
                 key={preset.id}
@@ -124,8 +123,8 @@ export function NutritionClient({
                     {preset.time} · {preset.proteinG} g · {preset.caloriesKcal} kcal
                   </div>
                 </div>
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-white">
-                  +
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-white">
+                  <IconPlus size={16} />
                 </span>
               </button>
             ))}
@@ -134,11 +133,9 @@ export function NutritionClient({
       )}
 
       {tab === "foods" && (
-        <div className="mb-3 rounded-xl border border-line bg-panel p-4">
-          <p className="mb-2 text-xs text-faint">
-            One tap = one serving. Tap twice for two.
-          </p>
-          <div className="divide-y divide-line/50">
+        <div className="card mb-3 p-4">
+          <p className="mb-2 text-xs text-faint">One tap = one serving. Tap twice for two.</p>
+          <div className="divide-y divide-line/60">
             {foods.map((food) => (
               <button
                 key={food.id}
@@ -159,8 +156,8 @@ export function NutritionClient({
                     {food.servingLabel} · {food.proteinG} g · {food.caloriesKcal} kcal
                   </div>
                 </div>
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-white">
-                  +
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-accent text-white">
+                  <IconPlus size={16} />
                 </span>
               </button>
             ))}
@@ -168,14 +165,12 @@ export function NutritionClient({
         </div>
       )}
 
-      <div className="mb-3 rounded-xl border border-line bg-panel p-4">
-        <h2 className="mb-2.5 text-[11px] font-semibold uppercase tracking-[.06em] text-faint">
-          Logged today
-        </h2>
+      <div className="card mb-3 p-4">
+        <span className="micro-pill mb-3">Logged today</span>
         {meals.length === 0 ? (
           <p className="py-4 text-center text-sm text-faint">Nothing yet — tap something above</p>
         ) : (
-          <div className="divide-y divide-line/50">
+          <div className="divide-y divide-line/60">
             {meals.map((m) => (
               <div key={m.id} className="flex items-center justify-between gap-2 py-2">
                 <div className="min-w-0">
@@ -186,9 +181,9 @@ export function NutritionClient({
                 </div>
                 <button
                   onClick={() => remove(m.id)}
-                  className="h-9 w-9 shrink-0 rounded-lg border border-line text-bad"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line text-bad hover:bg-bad/10"
                 >
-                  ×
+                  <IconClose size={15} />
                 </button>
               </div>
             ))}
@@ -196,7 +191,7 @@ export function NutritionClient({
         )}
       </div>
 
-      <div className="mb-3 rounded-lg border-l-2 border-bad bg-bad/5 px-3 py-2.5 text-xs text-dim">
+      <div className="rounded-xl border-l-2 border-bad bg-bad/5 px-3 py-2.5 text-xs text-dim">
         <b className="text-bad">Rest days too.</b> Same protein every day. Muscle protein synthesis
         stays elevated 24–48h after a session, so rest days are when you actually grow.
       </div>
@@ -216,8 +211,8 @@ function TabButton({
   return (
     <button
       onClick={onClick}
-      className={`h-10 flex-1 rounded-md text-sm font-medium ${
-        active ? "bg-accent text-white" : "text-dim"
+      className={`h-10 flex-1 rounded-full text-sm font-medium transition-colors ${
+        active ? "bg-accent text-white" : "text-dim hover:text-ink"
       }`}
     >
       {children}
