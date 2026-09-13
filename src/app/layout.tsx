@@ -41,8 +41,21 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${hind.variable} ${amulya.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-bg text-ink">{children}</body>
+      {/* Some browser security/antivirus extensions (Bitdefender's is a
+          known one) inject attributes like `bis_skin_checked` and
+          `bis_register` into every element on the page before React
+          hydrates - nothing in this app's code writes those, and there's
+          no reliable way to predict which elements a given extension will
+          touch. `suppressHydrationWarning` here only silences the warning
+          for html/body's OWN attributes (React doesn't propagate it to
+          descendants), which is exactly the two elements an extension like
+          this marks first. It has zero effect on genuine mismatches -
+          those still warn normally everywhere else in the tree. */}
+      <body className="min-h-full flex flex-col bg-bg text-ink" suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 }
