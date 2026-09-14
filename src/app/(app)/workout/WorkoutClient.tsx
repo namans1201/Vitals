@@ -6,8 +6,9 @@ import { DateNav } from "@/components/DateNav";
 import { useToast } from "@/components/Toast";
 import { createWorkout, addWorkoutSet, patchWorkoutSet, deleteWorkout } from "@/lib/api-client";
 import { SESSION_LABELS, type SessionType } from "@/domain/sessionTemplates";
-import { IconInfo, IconMinus, IconPlus, IconRun } from "@/components/icons";
+import { IconInfo, IconPlus, IconRun } from "@/components/icons";
 import { useEscapeKey } from "@/lib/useEscapeKey";
+import { RestTimer } from "@/components/RestTimer";
 import { playCountdownBeep, playPersonalRecord, playRestOver, vibrate } from "@/lib/sounds";
 import { clampWholeNumber, sanitizeWholeNumberInput } from "@/domain/setInput";
 import { ExerciseFormGuideModal } from "@/components/ExerciseFormGuideModal";
@@ -222,9 +223,15 @@ export function WorkoutClient({
       {workout && (
         <>
           {rest.active && (
-            <div className="sticky top-2 z-10 mb-3">
-              <RestTimerBar rest={rest} running={restRunning} onToggleRunning={() => setRestRunning((r) => !r)} onAdjust={adjustRest} onSkip={skipRest} />
-            </div>
+            <RestTimer
+              remaining={rest.remaining}
+              total={rest.total}
+              running={restRunning}
+              stepSeconds={REST_STEP_SECONDS}
+              onToggleRunning={() => setRestRunning((r) => !r)}
+              onAdjust={adjustRest}
+              onSkip={skipRest}
+            />
           )}
           {exerciseGroups.map((group) => (
             <ExerciseCard key={group.exercise.id} workoutId={workout.id} group={group} onSetCompleted={startRest} />
@@ -304,83 +311,6 @@ function ConfirmRemoveSession({
           </button>
         </div>
       </div>
-    </div>
-  );
-}
-
-function RestTimerBar({
-  rest,
-  running,
-  onToggleRunning,
-  onAdjust,
-  onSkip,
-}: {
-  rest: RestState;
-  running: boolean;
-  onToggleRunning: () => void;
-  onAdjust: (delta: number) => void;
-  onSkip: () => void;
-}) {
-  const circumference = 2 * Math.PI * 26;
-  const progress = rest.total > 0 ? (rest.total - rest.remaining) / rest.total : 0;
-  const minutes = Math.floor(rest.remaining / 60);
-  const seconds = rest.remaining % 60;
-
-  return (
-    <div className="card flex items-center gap-3 p-3">
-      <div className="relative h-14 w-14 shrink-0">
-        <svg className="h-full w-full -rotate-90" viewBox="0 0 60 60">
-          <circle cx="30" cy="30" r="26" fill="none" stroke="var(--panel-2)" strokeWidth="5" />
-          <circle
-            cx="30"
-            cy="30"
-            r="26"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="5"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={circumference * (1 - progress)}
-            className={`transition-[stroke-dashoffset] duration-500 ${rest.remaining <= 3 ? "text-bad" : "text-accent"}`}
-          />
-        </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className={`font-heading text-xs font-bold tabular-nums ${rest.remaining <= 3 ? "text-bad" : "text-ink"}`}>
-            {minutes}:{seconds.toString().padStart(2, "0")}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex-1">
-        <div className="micro text-faint">Rest</div>
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={() => onAdjust(-REST_STEP_SECONDS)}
-            className="flex h-7 w-7 items-center justify-center rounded-full border border-line text-dim hover:bg-panel-2"
-            aria-label="15 seconds less"
-          >
-            <IconMinus size={12} />
-          </button>
-          <span className="micro w-9 text-center text-faint">±15s</span>
-          <button
-            onClick={() => onAdjust(REST_STEP_SECONDS)}
-            className="flex h-7 w-7 items-center justify-center rounded-full border border-line text-dim hover:bg-panel-2"
-            aria-label="15 seconds more"
-          >
-            <IconPlus size={12} />
-          </button>
-        </div>
-      </div>
-
-      <button
-        onClick={onToggleRunning}
-        className="h-9 shrink-0 rounded-full border border-line px-3 text-xs font-medium text-dim hover:bg-panel-2"
-      >
-        {running ? "Pause" : "Resume"}
-      </button>
-      <button onClick={onSkip} className="h-9 shrink-0 rounded-full bg-accent px-3 text-xs font-medium text-white">
-        Skip
-      </button>
     </div>
   );
 }

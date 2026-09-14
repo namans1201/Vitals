@@ -63,7 +63,10 @@ export function AppNav() {
           for `backdrop-filter` to actually composite here. A fixed element
           takes no space in flow, so NavSpacerDesktop below reserves the
           same footprint in `main`'s layout. */}
-      <div className="glass fixed inset-x-4 top-4 z-20 mx-auto hidden max-w-5xl items-center justify-between gap-4 rounded-2xl px-4 py-2.5 sm:flex">
+      <div
+        data-appnav="top"
+        className="glass fixed inset-x-4 top-4 z-20 mx-auto hidden max-w-5xl items-center justify-between gap-4 rounded-2xl px-4 py-2.5 sm:flex"
+      >
         <Wordmark />
         <nav className="flex items-center gap-1">
           {NAV_ITEMS.map(({ href, label, Icon }) => {
@@ -98,7 +101,10 @@ export function AppNav() {
       {/* Phone - minimal top bar in the same glass material, nav moves to
           the bottom (thumb reach). Also `fixed` directly (not `sticky`) for
           the same compositing reason as the desktop bar above. */}
-      <header className="glass-flush fixed inset-x-0 top-0 z-20 flex items-center justify-between border-b border-line/70 px-4 py-3 sm:hidden">
+      <header
+        data-appnav="top"
+        className="glass-flush fixed inset-x-0 top-0 z-20 flex items-center justify-between border-b border-line/70 px-4 py-3 sm:hidden"
+      >
         <Wordmark />
         <form action={logout}>
           <button
@@ -112,6 +118,7 @@ export function AppNav() {
       </header>
 
       <nav
+        data-appnav="bottom"
         className="glass-flush fixed inset-x-0 bottom-0 z-20 flex border-t border-line/70 sm:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
