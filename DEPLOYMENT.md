@@ -20,6 +20,33 @@ do those steps yourself.
      this is your `DIRECT_URL`.
    Both already include `?sslmode=require`; keep that.
 
+## 2a. Keep the function region and the database region together
+
+`vercel.json` pins `"regions": ["sin1"]` (Singapore) to match the Neon
+project's region. **If you ever move the database, move this too.**
+
+This is not a micro-optimisation. Vercel's default function region is
+`iad1` (Washington DC). With the database in Singapore, that was measured
+at ~230ms *per query* — and these pages issue their queries in sequential
+waves, so the workout page paid it several times over:
+
+| Request | iad1 function, sin1 database |
+|---|---|
+| static file (CDN, no function) | 122ms |
+| `/login` (function, zero queries) | 320ms |
+| `/plan` (~2 queries) | 560ms |
+| `/workout` (7-9 queries) | 1420ms |
+
+The same pages against a local database were 14-26ms. Colocating the
+function with the database is what closes that gap; no amount of query
+tuning in the app can, because the cost is the speed of light, not the
+work.
+
+Neon's region list has no Mumbai option, so Singapore is the closest
+available to India — and it's the *function-to-database* hop that matters
+here, not the browser-to-function one. A page makes one browser round trip
+but many database round trips.
+
 ## 3. Create the Vercel project
 
 1. vercel.com → Add New → Project → import the GitHub repo from step 1.

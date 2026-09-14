@@ -72,6 +72,7 @@ export async function getOrCreateWorkoutForDate(
       existingSessionType: existing.sessionType,
       plannedSessionType: activeSessionType,
       existingHasLoggedWork: hasLoggedWork(existing.sets),
+      existingSetCount: existing.sets.length,
     });
     if (!replace) return existing;
     // Untouched scaffolding from a previous plan - safe to discard.

@@ -30,6 +30,7 @@ describe("shouldReplaceScaffold", () => {
         existingSessionType: "full_body",
         plannedSessionType: "upper_a",
         existingHasLoggedWork: false,
+        existingSetCount: 11,
       }),
     ).toBe(true);
   });
@@ -40,6 +41,7 @@ describe("shouldReplaceScaffold", () => {
         existingSessionType: "full_body",
         plannedSessionType: "upper_a",
         existingHasLoggedWork: true,
+        existingSetCount: 11,
       }),
     ).toBe(false);
   });
@@ -50,6 +52,7 @@ describe("shouldReplaceScaffold", () => {
         existingSessionType: "upper_a",
         plannedSessionType: "upper_a",
         existingHasLoggedWork: false,
+        existingSetCount: 11,
       }),
     ).toBe(false);
   });
@@ -61,6 +64,45 @@ describe("shouldReplaceScaffold", () => {
         existingSessionType: "custom",
         plannedSessionType: null,
         existingHasLoggedWork: false,
+        existingSetCount: 11,
+      }),
+    ).toBe(false);
+  });
+
+  it("rebuilds a session that has zero sets, even when its type matches the plan", () => {
+    // The real failure this guards: a session scaffolded while the exercise
+    // library was empty/incomplete gets zero sets, and matching the planned
+    // type used to mean "already right" - leaving it permanently empty with
+    // no way to fix it from the UI.
+    expect(
+      shouldReplaceScaffold({
+        existingSessionType: "upper_a",
+        plannedSessionType: "upper_a",
+        existingHasLoggedWork: false,
+        existingSetCount: 0,
+      }),
+    ).toBe(true);
+  });
+
+  it("still won't rebuild an empty session that somehow has logged work", () => {
+    // Defensive: logged work always wins over the empty-scaffold rule.
+    expect(
+      shouldReplaceScaffold({
+        existingSessionType: "upper_a",
+        plannedSessionType: "upper_a",
+        existingHasLoggedWork: true,
+        existingSetCount: 0,
+      }),
+    ).toBe(false);
+  });
+
+  it("leaves an empty session alone when nothing is planned that day", () => {
+    expect(
+      shouldReplaceScaffold({
+        existingSessionType: "custom",
+        plannedSessionType: null,
+        existingHasLoggedWork: false,
+        existingSetCount: 0,
       }),
     ).toBe(false);
   });
