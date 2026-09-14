@@ -4,9 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DateNav } from "@/components/DateNav";
 import { useToast } from "@/components/Toast";
-import { createWorkout, addWorkoutSet, patchWorkoutSet } from "@/lib/api-client";
+import { createWorkout, addWorkoutSet, patchWorkoutSet, deleteWorkout } from "@/lib/api-client";
 import { SESSION_LABELS, type SessionType } from "@/domain/sessionTemplates";
 import { IconInfo, IconMinus, IconPlus, IconRun } from "@/components/icons";
+import { useEscapeKey } from "@/lib/useEscapeKey";
 import { playCountdownBeep, playPersonalRecord, playRestOver, vibrate } from "@/lib/sounds";
 import { clampWholeNumber, sanitizeWholeNumberInput } from "@/domain/setInput";
 import { ExerciseFormGuideModal } from "@/components/ExerciseFormGuideModal";
@@ -54,6 +55,27 @@ export function WorkoutClient({
   const router = useRouter();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
+  const [removeOpen, setRemoveOpen] = useState(false);
+
+  // A session counts as "unplanned" when the week plan doesn't call for this
+  // exact session today - i.e. it was started by hand from the pills below.
+  // That's the only case where removing it is permanent.
+  const isUnplannedSession = workout != null && workout.sessionType !== today?.lift;
+
+  async function removeSession() {
+    if (!workout) return;
+    setBusy(true);
+    try {
+      await deleteWorkout(workout.id);
+      setRemoveOpen(false);
+      toast("Session removed");
+      router.refresh();
+    } catch {
+      toast("Couldn't remove the session - try again");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   // Rest timer - shared across every exercise card, since only one rest
   // ever happens at a time regardless of which set just finished.
@@ -109,15 +131,40 @@ export function WorkoutClient({
     (sum, g) => sum + g.sets.filter((s) => s.completed).length,
     0,
   );
+  // Broader than doneSets: anything actually entered counts as work worth
+  // warning about before a delete, ticked complete or not (same test as
+  // domain/sessionReconcile.ts's hasLoggedWork).
+  const loggedSets = exerciseGroups.reduce(
+    (sum, g) =>
+      sum +
+      g.sets.filter((s) => s.completed || s.reps !== null || s.weightKg !== null || s.rir !== null)
+        .length,
+    0,
+  );
 
   return (
     <div className="mx-auto max-w-2xl animate-in">
       <DateNav date={date} todayIsoStr={todayIsoStr} basePath="/workout" />
 
       <div className="card mb-3 p-4">
-        <span className="micro-pill mb-2">
-          {workout ? SESSION_LABELS[workout.sessionType as SessionType] ?? workout.sessionType : "Session"}
-        </span>
+        <div className="mb-2 flex items-start justify-between gap-2">
+          <span className="micro-pill">
+            {workout ? SESSION_LABELS[workout.sessionType as SessionType] ?? workout.sessionType : "Session"}
+          </span>
+          {/* Only offered where removing actually sticks. On a day the plan
+              calls for a session, getOrCreateWorkoutForDate scaffolds a fresh
+              one on the very next render, so a remove button there would look
+              broken rather than useful. */}
+          {workout && isUnplannedSession && (
+            <button
+              type="button"
+              onClick={() => setRemoveOpen(true)}
+              className="shrink-0 rounded-full border border-line px-3 py-1 text-xs text-dim transition-colors hover:border-bad hover:text-bad"
+            >
+              Remove
+            </button>
+          )}
+        </div>
         {workout && totalSets > 0 && (
           <>
             <div className="mb-1 mt-1 text-xs text-dim">
@@ -185,6 +232,78 @@ export function WorkoutClient({
           <AddExercise workoutId={workout.id} allExercises={allExercises} existing={exerciseGroups} />
         </>
       )}
+
+      {removeOpen && workout && (
+        <ConfirmRemoveSession
+          sessionLabel={SESSION_LABELS[workout.sessionType as SessionType] ?? workout.sessionType}
+          loggedSetCount={loggedSets}
+          busy={busy}
+          onConfirm={removeSession}
+          onClose={() => setRemoveOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
+/** Confirm before removing a hand-started session. Deleting cascades to its
+ * sets, so anything already entered goes with it - the count is spelled out
+ * rather than left to a generic "are you sure". */
+function ConfirmRemoveSession({
+  sessionLabel,
+  loggedSetCount,
+  busy,
+  onConfirm,
+  onClose,
+}: {
+  sessionLabel: string;
+  loggedSetCount: number;
+  busy: boolean;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  useEscapeKey(onClose);
+
+  return (
+    <div
+      className="fixed inset-0 z-30 flex items-center justify-center bg-ink/40 px-4 overlay-in"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        className="card modal-in w-full max-w-xs p-4"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Remove session"
+      >
+        <h2 className="font-heading text-sm font-bold text-ink">Remove this session?</h2>
+        <p className="mt-2 text-xs text-dim">
+          {sessionLabel} isn&apos;t planned for this day, so removing it clears the day entirely.
+        </p>
+        {loggedSetCount > 0 && (
+          <p className="mt-2 rounded-lg bg-bad/10 px-3 py-2 text-xs text-bad">
+            {loggedSetCount} logged {loggedSetCount === 1 ? "set" : "sets"} will be deleted with it.
+            This can&apos;t be undone.
+          </p>
+        )}
+        <div className="mt-4 flex gap-2">
+          <button
+            onClick={onClose}
+            disabled={busy}
+            className="h-10 flex-1 rounded-full border border-line text-sm font-medium text-dim disabled:opacity-50"
+          >
+            Keep it
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={busy}
+            className="h-10 flex-1 rounded-full bg-bad text-sm font-medium text-white disabled:opacity-50"
+          >
+            Remove
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

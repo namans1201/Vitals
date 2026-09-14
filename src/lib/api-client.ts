@@ -31,6 +31,10 @@ export function createWorkout(body: { date: string; sessionType: string }) {
   return request("/api/workouts", { method: "POST", body: JSON.stringify(body) });
 }
 
+export function deleteWorkout(workoutId: number) {
+  return request(`/api/workouts/${workoutId}`, { method: "DELETE" });
+}
+
 export function addWorkoutSet(workoutId: number, body: { exerciseId: number; targetSets?: number }) {
   return request(`/api/workouts/${workoutId}/sets`, { method: "POST", body: JSON.stringify(body) });
 }
