@@ -183,6 +183,47 @@ export function TodayClient({
       </div>
 
       <div className="card mb-3 p-4">
+        <span className="micro-pill mb-3">Water</span>
+        <div className="mb-2 h-2 overflow-hidden rounded-full bg-panel-2">
+          <div
+            className="h-full rounded-full bg-accent transition-[width]"
+            style={{ width: `${waterPct}%` }}
+          />
+        </div>
+        <div className="mb-3 flex items-baseline justify-between">
+          <div className="font-heading text-xl font-bold text-ink">
+            <span className="tabular-nums">{waterMl}</span>
+            <span className="text-sm font-normal text-faint"> / {waterTargetMl} ml</span>
+          </div>
+          <div className="text-xs text-faint">
+            {waterRemaining > 0 ? (
+              <>
+                <span className="tabular-nums text-caution">{waterRemaining} ml</span> left
+              </>
+            ) : (
+              <span className="text-good">Target hit</span>
+            )}
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => adjustWater(-WATER_STEP_ML)}
+            disabled={waterMl <= 0}
+            className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full border border-line bg-panel-2 text-sm font-medium text-dim transition-colors hover:bg-line/60 disabled:opacity-40"
+          >
+            <IconMinus size={15} />
+            {WATER_STEP_ML} ml
+          </button>
+          <button
+            onClick={() => adjustWater(WATER_STEP_ML)}
+            className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full bg-accent text-sm font-medium text-white transition-opacity hover:opacity-90"
+          >
+            <IconPlus size={15} />
+            {WATER_STEP_ML} ml
+          </button>
+        </div>
+      </div>
+      <div className="card mb-3 p-4">
         <button
           onClick={() => setChecklistOpen((o) => !o)}
           className="flex w-full items-center justify-between"
@@ -229,47 +270,6 @@ export function TodayClient({
         </div>
       </div>
 
-      <div className="card mb-3 p-4">
-        <span className="micro-pill mb-3">Water</span>
-        <div className="mb-2 h-2 overflow-hidden rounded-full bg-panel-2">
-          <div
-            className="h-full rounded-full bg-accent transition-[width]"
-            style={{ width: `${waterPct}%` }}
-          />
-        </div>
-        <div className="mb-3 flex items-baseline justify-between">
-          <div className="font-heading text-xl font-bold text-ink">
-            <span className="tabular-nums">{waterMl}</span>
-            <span className="text-sm font-normal text-faint"> / {waterTargetMl} ml</span>
-          </div>
-          <div className="text-xs text-faint">
-            {waterRemaining > 0 ? (
-              <>
-                <span className="tabular-nums text-caution">{waterRemaining} ml</span> left
-              </>
-            ) : (
-              <span className="text-good">Target hit</span>
-            )}
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <button
-            onClick={() => adjustWater(-WATER_STEP_ML)}
-            disabled={waterMl <= 0}
-            className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full border border-line bg-panel-2 text-sm font-medium text-dim transition-colors hover:bg-line/60 disabled:opacity-40"
-          >
-            <IconMinus size={15} />
-            {WATER_STEP_ML} ml
-          </button>
-          <button
-            onClick={() => adjustWater(WATER_STEP_ML)}
-            className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full bg-accent text-sm font-medium text-white transition-opacity hover:opacity-90"
-          >
-            <IconPlus size={15} />
-            {WATER_STEP_ML} ml
-          </button>
-        </div>
-      </div>
     </div>
   );
 }
