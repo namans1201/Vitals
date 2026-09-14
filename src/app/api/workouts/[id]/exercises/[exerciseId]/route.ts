@@ -65,3 +65,47 @@ export async function PATCH(
 
   return NextResponse.json({ replaced: updated.count, exercise: target });
 }
+
+/**
+ * Drop an exercise out of a session entirely, sets and all.
+ *
+ * Refuses to remove the last one. An empty session is not a neutral state
+ * here: shouldReplaceScaffold treats zero sets as a failed scaffold and
+ * rebuilds the whole thing from the template on the very next render, so
+ * removing the final exercise would appear to do nothing while quietly
+ * resurrecting every exercise you had already removed. The UI disables the
+ * control in that case; this is the backstop for a stale page.
+ */
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string; exerciseId: string }> },
+) {
+  const { id, exerciseId } = await params;
+  const workoutId = Number(id);
+  const targetExerciseId = Number(exerciseId);
+  if (!Number.isInteger(workoutId) || !Number.isInteger(targetExerciseId)) {
+    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+  }
+
+  const sets = await prisma.workoutSet.findMany({
+    where: { workoutId },
+    select: { exerciseId: true },
+  });
+  if (sets.length === 0) {
+    return NextResponse.json({ error: "Session not found" }, { status: 404 });
+  }
+  if (!sets.some((s) => s.exerciseId === targetExerciseId)) {
+    return NextResponse.json({ error: "That exercise isn't in this session" }, { status: 404 });
+  }
+  if (new Set(sets.map((s) => s.exerciseId)).size === 1) {
+    return NextResponse.json(
+      { error: "A session needs at least one exercise" },
+      { status: 409 },
+    );
+  }
+
+  const { count } = await prisma.workoutSet.deleteMany({
+    where: { workoutId, exerciseId: targetExerciseId },
+  });
+  return NextResponse.json({ removed: count });
+}

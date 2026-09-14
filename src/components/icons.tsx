@@ -100,6 +100,32 @@ export function IconMinus({ className, size = 20 }: IconProps) {
   );
 }
 
+/** Two circular arrows chasing each other - the conventional "swap this for
+ * something else" glyph. Each arc ends in a corner bracket rather than a
+ * filled triangle, so it keeps the same stroked weight as the rest of the
+ * set instead of reading heavier than its neighbours. */
+export function IconReplace({ className, size = 20 }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M20 11.5A8 8 0 0 0 6.2 6.2" />
+      <path d="M20 7v4.5h-4.5" />
+      <path d="M4 12.5a8 8 0 0 0 13.8 5.3" />
+      <path d="M4 17v-4.5h4.5" />
+    </svg>
+  );
+}
+
+export function IconTrash({ className, size = 20 }: IconProps) {
+  return (
+    <svg {...base(size, className)}>
+      <path d="M4 7h16" />
+      <path d="M9.5 7V5.5A1.5 1.5 0 0 1 11 4h2a1.5 1.5 0 0 1 1.5 1.5V7" />
+      <path d="M6.5 7l.8 11.2A2 2 0 0 0 9.3 20h5.4a2 2 0 0 0 2-1.8L17.5 7" />
+      <path d="M10.5 11v5M13.5 11v5" />
+    </svg>
+  );
+}
+
 export function IconClose({ className, size = 20 }: IconProps) {
   return (
     <svg {...base(size, className)}>

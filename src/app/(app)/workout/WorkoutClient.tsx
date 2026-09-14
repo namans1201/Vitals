@@ -10,9 +10,10 @@ import {
   patchWorkoutSet,
   deleteWorkout,
   replaceWorkoutExercise,
+  removeWorkoutExercise,
 } from "@/lib/api-client";
 import { SESSION_LABELS, type SessionType } from "@/domain/sessionTemplates";
-import { IconInfo, IconPlus, IconRun, IconRest } from "@/components/icons";
+import { IconInfo, IconPlus, IconRun, IconReplace, IconTrash } from "@/components/icons";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 import { RestTimer } from "@/components/RestTimer";
 import { playCountdownBeep, playPersonalRecord, playRestOver, vibrate } from "@/lib/sounds";
@@ -347,6 +348,7 @@ function ExerciseCard({
   const toast = useToast();
   const [formGuideOpen, setFormGuideOpen] = useState(false);
   const [replaceOpen, setReplaceOpen] = useState(false);
+  const [removeOpen, setRemoveOpen] = useState(false);
   // Reps are lifted here (not left inside each set row) purely so a PR can
   // be checked against the exercise's whole current session - RIR and the
   // completed toggle don't affect any PR metric, so those stay local to
@@ -431,7 +433,16 @@ function ExerciseCard({
             aria-label={`Replace ${exercise.name}`}
             title="Replace this exercise"
           >
-            <IconRest size={15} />
+            <IconReplace size={15} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setRemoveOpen(true)}
+            className="flex h-6 w-6 items-center justify-center rounded-full text-faint transition-colors hover:bg-panel-2 hover:text-bad"
+            aria-label={`Remove ${exercise.name}`}
+            title="Remove this exercise"
+          >
+            <IconTrash size={15} />
           </button>
           <button
             type="button"
@@ -480,6 +491,15 @@ function ExerciseCard({
           />
         ))}
       </div>
+
+      {removeOpen && (
+        <RemoveExercise
+          workoutId={workoutId}
+          group={group}
+          isLastExercise={existing.length <= 1}
+          onClose={() => setRemoveOpen(false)}
+        />
+      )}
 
       {replaceOpen && (
         <ReplaceExercise
@@ -737,6 +757,108 @@ function ReplaceExercise({
           >
             Replace
           </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Drop this exercise out of the session.
+ *
+ * Never offered for the last remaining exercise. An empty session is not a
+ * neutral state: shouldReplaceScaffold treats zero sets as a failed scaffold
+ * and rebuilds the whole session from the template on the next render, so
+ * removing the final exercise would look like nothing happened while quietly
+ * bringing back every exercise already removed.
+ */
+function RemoveExercise({
+  workoutId,
+  group,
+  isLastExercise,
+  onClose,
+}: {
+  workoutId: number;
+  group: ExerciseGroup;
+  isLastExercise: boolean;
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
+  useEscapeKey(onClose);
+
+  const loggedCount = group.sets.filter(
+    (s) => s.completed || s.reps !== null || s.weightKg !== null || s.rir !== null,
+  ).length;
+
+  async function remove() {
+    setBusy(true);
+    try {
+      await removeWorkoutExercise(workoutId, group.exercise.id);
+      onClose();
+      toast(`Removed ${group.exercise.name}`);
+      router.refresh();
+    } catch {
+      toast("Couldn't remove that exercise - try again");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-30 flex items-center justify-center bg-ink/40 px-4 overlay-in"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        className="card modal-in w-full max-w-xs p-4"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Remove ${group.exercise.name}`}
+      >
+        <h2 className="font-heading text-sm font-bold text-ink">
+          Remove {group.exercise.name}?
+        </h2>
+
+        {isLastExercise ? (
+          <p className="mt-2 text-xs text-dim">
+            This is the only exercise left. A session needs at least one, otherwise the day&apos;s
+            plan simply rebuilds it from scratch - swap it for something else instead.
+          </p>
+        ) : (
+          <p className="mt-2 text-xs text-dim">
+            Takes all {group.sets.length} of its {group.sets.length === 1 ? "set" : "sets"} out of
+            the session. The rest of the day is untouched.
+          </p>
+        )}
+
+        {!isLastExercise && loggedCount > 0 && (
+          <p className="mt-3 rounded-lg bg-bad/10 px-3 py-2 text-xs text-bad">
+            {loggedCount} logged {loggedCount === 1 ? "set" : "sets"} will be deleted with it. This
+            can&apos;t be undone.
+          </p>
+        )}
+
+        <div className="mt-4 flex gap-2">
+          <button
+            onClick={onClose}
+            disabled={busy}
+            className="h-10 flex-1 rounded-full border border-line text-sm font-medium text-dim disabled:opacity-50"
+          >
+            {isLastExercise ? "Close" : "Keep it"}
+          </button>
+          {!isLastExercise && (
+            <button
+              onClick={remove}
+              disabled={busy}
+              className="h-10 flex-1 rounded-full bg-bad text-sm font-medium text-white disabled:opacity-50"
+            >
+              Remove
+            </button>
+          )}
         </div>
       </div>
     </div>

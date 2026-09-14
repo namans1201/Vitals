@@ -52,6 +52,12 @@ export function replaceWorkoutExercise(
   });
 }
 
+/** Drop an exercise out of a session, sets and all. Refused if it is the last
+ * one - see the route for why an empty session is not a safe state. */
+export function removeWorkoutExercise(workoutId: number, exerciseId: number) {
+  return request(`/api/workouts/${workoutId}/exercises/${exerciseId}`, { method: "DELETE" });
+}
+
 export function patchWorkoutSet(
   workoutId: number,
   setId: number,
