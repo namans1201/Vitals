@@ -347,3 +347,303 @@ h4 {
     scroll-behavior: auto !important;
   }
 }
+
+
+/* ==========================================================================
+ * Login page
+ *
+ * A glass card floating over two pieces of line art. The figures are cut out
+ * of the source PNGs (paper background flood-filled to transparent), so they
+ * sit on whatever ground this page paints rather than arriving as opaque
+ * cream rectangles. Each figure keeps the horizon lines from ONE side only -
+ * hers trail right, his trail left - so the lines sweep inward across the
+ * page and pass behind the card instead of running off both edges.
+ * ========================================================================== */
+
+.login-shell {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 32px 20px;
+  /* The art runs past the viewport edge on purpose, so the lines leave the
+   * page rather than stopping short of it. */
+  overflow: hidden;
+}
+
+.login-art {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .login-art {
+    display: block;
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+    background-repeat: no-repeat;
+    background-size: contain;
+  }
+
+  /* Heights are set (not widths) because the figure's rendered height is what
+   * has to stay put: each box is sized so its figure lands at exactly the size
+   * it was before the horizon lines were folded into the crop. The element's
+   * aspect-ratio matches the source crop, so width follows automatically and
+   * the lines reach as far as they reach. */
+  .login-art--left {
+    top: 20px;
+    left: 22px;
+    height: clamp(300px, 53vh, 510px);
+    aspect-ratio: 1155 / 675;
+    background-image: url("/login-art/female.webp");
+    background-position: left top;
+  }
+
+  .login-art--right {
+    right: 22px;
+    bottom: 20px;
+    height: clamp(240px, 43vh, 410px);
+    aspect-ratio: 1169 / 681;
+    background-image: url("/login-art/male.webp");
+    background-position: right bottom;
+  }
+}
+
+/* --- The card, in liquid glass -------------------------------------------
+ * Apple's material is five optical layers: translucency, a blurred and
+ * saturated backdrop, refraction at the rim where the glass is thickest, a
+ * specular highlight tracking that rim, and a soft ambient shadow. Four of
+ * the five are plain CSS and ship here.
+ *
+ * The fifth - true refraction - is the one CSS genuinely cannot do: none of
+ * backdrop-filter's functions displaces a pixel, so blur alone gives frosted
+ * glass, not a lens. Real lensing needs an SVG feDisplacementMap referenced
+ * as `backdrop-filter: url(#id)`, which is Chromium-only and off-spec. It is
+ * layered on below under @supports, so every other engine keeps the frosted
+ * version rather than losing the card.
+ *
+ * Unlike .glass above this uses a translucent WHITE rather than a mid-grey.
+ * That rule's reasoning holds for the app's flat near-white pages, but here
+ * there is real line art behind the card to blur and bend, so white reads as
+ * glass instead of disappearing.
+ * ------------------------------------------------------------------------ */
+.login-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 372px;
+  padding: 34px 30px 30px;
+  text-align: center;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.44);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow:
+    /* glass thickness - an inner glow just inside the rim */
+    inset 0 0 24px rgba(255, 255, 255, 0.45),
+    /* the pane sitting off the page */
+    0 1px 2px rgba(17, 17, 17, 0.04),
+    0 20px 52px rgba(17, 17, 17, 0.14);
+}
+
+/* The fifth layer, where the engine has it: rim refraction.
+ *
+ * Blur drops from 20px to 11px here, and that is the whole trick rather than a
+ * detail. Refraction can only bend structure that survived the blur - at 20px
+ * the backdrop is already a flat wash and the displacement map has nothing
+ * left to act on, so the lensing is invisible. Verified against a striped
+ * test backdrop: at 20px the stripes vanish entirely, at ~11px they stay
+ * legible enough to visibly compress as they approach the rim. */
+@supports (backdrop-filter: url(#login-glass-refraction)) {
+  .login-card {
+    backdrop-filter: blur(11px) saturate(180%) url(#login-glass-refraction);
+    -webkit-backdrop-filter: blur(11px) saturate(180%) url(#login-glass-refraction);
+  }
+}
+
+/* Specular sheen: a directional light catch falling across the top-left and
+ * gone by the middle of the pane. */
+.login-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    158deg,
+    rgba(255, 255, 255, 0.6) 0%,
+    rgba(255, 255, 255, 0.12) 32%,
+    rgba(255, 255, 255, 0) 58%
+  );
+}
+
+/* The rim. A gradient-filled 1px ring (a padding box masked down to its own
+ * border) rather than a flat `border`, so the edge is bright where the light
+ * hits it and dim where it doesn't - the single detail that most makes the
+ * shape read as a solid piece of glass rather than a blurred box. */
+.login-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  padding: 1px;
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(255, 255, 255, 0.35) 34%,
+    rgba(255, 255, 255, 0.14) 56%,
+    rgba(255, 255, 255, 0.85) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* Keep the form itself above both decorative layers. */
+.login-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+.login-logo {
+  display: block;
+  margin: 0 auto;
+  width: 56px;
+  height: 56px;
+}
+
+/* Both quiet labels run one step darker than they would on a solid card.
+ * --dim on glass measures 4.40:1 and --faint 2.31:1 against the composited
+ * surface; the glass is translucent, so whatever the art does behind it can
+ * only pull those further down. */
+.login-sub {
+  margin-top: 16px;
+  font-size: 14px;
+  color: rgba(17, 17, 17, 0.68);
+}
+
+.login-field {
+  display: block;
+  margin-top: 24px;
+  text-align: left;
+}
+
+.login-field .micro {
+  color: var(--dim);
+}
+
+/* The field is its own pane of glass, sunk into the card.
+ *
+ * The rim is built from stacked inset shadows rather than a `border`, because
+ * a border is one flat colour all the way round and real glass is not: the
+ * edge has to be dark enough to read as an edge, with a brighter catch along
+ * the top-left where the light lands. Earlier shadows in the list paint over
+ * later ones, so the rim is declared first and the glare sits just inside it.
+ *
+ * Note the rim is ink-toned, not white. White-on-white is exactly why the old
+ * `1px solid rgba(255,255,255,0.7)` border was invisible against the card —
+ * the same trap the `.glass` rule above documents. The white is spent on the
+ * highlight and the inner glow, where it actually reads; the boundary itself
+ * has to be darker than what it sits on.
+ *
+ * Its own backdrop-filter nests inside the card's: the backdrop this samples
+ * is the card's already-blurred output, which is what makes the field read as
+ * a second, separate piece of glass rather than a painted rectangle. */
+.login-input {
+  margin-top: 6px;
+  height: 44px;
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(6px) saturate(160%) brightness(1.04);
+  -webkit-backdrop-filter: blur(6px) saturate(160%) brightness(1.04);
+  padding: 0 13px;
+  color: var(--ink);
+  outline: none;
+  box-shadow:
+    /* the boundary itself */
+    inset 0 0 0 1px rgba(17, 17, 17, 0.13),
+    /* light catching the top-left lip */
+    inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.9),
+    /* bounce off the opposite wall */
+    inset -1px -1px 0 rgba(255, 255, 255, 0.55),
+    /* glass thickness */
+    inset 0 0 12px rgba(255, 255, 255, 0.3),
+    /* seats it into the card rather than floating on top */
+    0 1px 2px rgba(17, 17, 17, 0.05);
+  transition: box-shadow 0.15s ease, background 0.15s ease;
+}
+
+/* Focus darkens the rim and adds a ring outside it. The whole inset stack is
+ * restated because box-shadow is one property — listing only the focus ring
+ * would drop the rim and glare entirely and the field would go flat. */
+.login-input:focus {
+  background: rgba(255, 255, 255, 0.42);
+  box-shadow:
+    inset 0 0 0 1px rgba(17, 17, 17, 0.4),
+    inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.9),
+    inset -1px -1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 0 12px rgba(255, 255, 255, 0.3),
+    0 0 0 3px rgb(17 17 17 / 0.07);
+}
+
+.login-error {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--red);
+}
+
+/* Sized to its label, not to the card - an inline pill centred by the card's
+ * own text-align, rather than a full-width bar. */
+.login-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 22px;
+  height: 44px;
+  padding: 0 36px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow:
+    0 1px 2px rgba(17, 17, 17, 0.12),
+    0 8px 20px rgba(17, 17, 17, 0.18);
+  transition: opacity 0.15s ease;
+}
+
+.login-submit:hover {
+  opacity: 0.9;
+}
+
+/* --- Background ------------------------------------------------------------
+ * The page paints its own warm ground rather than inheriting the app-wide
+ * cool-grey ambient: the line art was drawn on warm paper, and against
+ * #fafafa's grey-blue blobs it read faintly yellow. One fixed, fully opaque
+ * pseudo-element, so it covers body::before instead of having to fight it.
+ * Gradients only - no extra request. The two washes are pulled from the
+ * artwork's own sage and terracotta accents.
+ * ------------------------------------------------------------------------- */
+.login-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 62% 52% at 16% 22%, #efeee3 0%, transparent 62%),
+    radial-gradient(ellipse 58% 46% at 84% 28%, #f0e7e0 0%, transparent 62%),
+    radial-gradient(ellipse 72% 58% at 50% 96%, #eeeae0 0%, transparent 66%),
+    #faf8f3;
+}
