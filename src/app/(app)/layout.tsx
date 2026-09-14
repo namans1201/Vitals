@@ -1,5 +1,6 @@
 import { ToastProvider } from "@/components/Toast";
 import { AppNav } from "@/components/AppNav";
+import { RefreshOnFocus } from "@/components/RefreshOnFocus";
 
 export default function AppLayout({
   children,
@@ -8,6 +9,9 @@ export default function AppLayout({
     <ToastProvider>
       <div className="flex min-h-full flex-1 flex-col">
         <AppNav />
+        {/* Re-reads server data when you return to the tab, so a phone left
+            open overnight is not still showing yesterday's state. */}
+        <RefreshOnFocus />
         {/* Both top bars in AppNav are `position: fixed` (required for their
             liquid-glass backdrop-filter to composite - see globals.css), so
             they take no space in normal flow. `main` compensates with

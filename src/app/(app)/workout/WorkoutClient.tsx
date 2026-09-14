@@ -337,6 +337,17 @@ function ExerciseCard({
   // an existing weight/volume PR can still be detected; it's never written
   // from here, hence a plain derived value rather than its own state.
   const [reps, setReps] = useState(() => new Map(sets.map((s) => [s.id, s.reps?.toString() ?? ""])));
+  // Same re-sync as SetRow's own fields (see the note there): this Map is
+  // seeded once on mount, so without this the reps boxes kept showing whatever
+  // was on screen when the card first rendered, even after the server sent
+  // newer numbers. Reps are committed on blur, so the only keystrokes this can
+  // discard are ones not yet saved at the moment the server data changes.
+  const serverReps = sets.map((s) => `${s.id}:${s.reps ?? ""}`).join("|");
+  const [seenReps, setSeenReps] = useState(serverReps);
+  if (seenReps !== serverReps) {
+    setSeenReps(serverReps);
+    setReps(new Map(sets.map((s) => [s.id, s.reps?.toString() ?? ""])));
+  }
   const weights = new Map(sets.map((s) => [s.id, s.weightKg?.toString() ?? ""]));
   const celebratedPRs = useRef<Set<PRType>>(new Set());
 
@@ -470,6 +481,35 @@ function SetRow({
   const toast = useToast();
   const [rir, setRir] = useState(set.rir?.toString() ?? "");
   const [completed, setCompleted] = useState(set.completed);
+
+  /*
+   * Re-sync from the server when the server's own value changes.
+   *
+   * These start as `useState(set.completed)`, which only reads the prop on
+   * first mount. The row is keyed by `set.id`, so it is never remounted while
+   * the session is open — meaning fresh server data arriving (a router
+   * refresh, or another device having logged the set) was silently ignored
+   * and the stale local value stayed on screen.
+   *
+   * Comparing against the last *seen* prop rather than against local state is
+   * what makes this safe next to the optimistic toggle below: tapping the
+   * button sets local state while the PATCH is still in flight and the prop
+   * is still the old value, and that must not be reverted. Only a genuine
+   * change in what the server says resets the row. This is React's documented
+   * adjust-state-during-render pattern; an effect would paint the stale value
+   * for a frame first.
+   */
+  const [seenCompleted, setSeenCompleted] = useState(set.completed);
+  if (seenCompleted !== set.completed) {
+    setSeenCompleted(set.completed);
+    setCompleted(set.completed);
+  }
+  const serverRir = set.rir?.toString() ?? "";
+  const [seenRir, setSeenRir] = useState(serverRir);
+  if (seenRir !== serverRir) {
+    setSeenRir(serverRir);
+    setRir(serverRir);
+  }
 
   function save(partial: Record<string, unknown>) {
     patchWorkoutSet(workoutId, set.id, partial).catch(() => toast("Couldn't save - check your connection"));
