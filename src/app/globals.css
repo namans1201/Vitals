@@ -411,6 +411,78 @@ h4 {
   }
 }
 
+/* Narrow desktop widths — a tablet in landscape (1024x768, 1180x820) and the
+ * smallest laptops. These clear the 1024px breakpoint so they get the
+ * side-by-side composition, but 1024px minus a 372px card leaves only ~280px
+ * a side, and at the full size the figures crowd the card and the male ends up
+ * behind it. Scaled down here so they sit in their corners instead. Keyed on
+ * width rather than height because width is what is actually short: a 1280x800
+ * laptop has room and is deliberately left alone.
+ */
+@media (min-width: 1024px) and (max-width: 1200px) {
+  .login-art--left {
+    height: clamp(240px, 34vh, 330px);
+  }
+
+  .login-art--right {
+    height: clamp(200px, 28vh, 270px);
+  }
+}
+
+/* Below the desktop breakpoint there is no room beside the card — at 375px
+ * the card is already ~343px wide — so the two figures move off the sides and
+ * on to the diagonal instead: he leans in from the top-right, she rises from
+ * the bottom-left, and the card sits in the gap between them. Each one's own
+ * horizon lines trail back toward the middle, which is what keeps this reading
+ * as the same artwork rather than two stray cut-outs.
+ *
+ * Their own 640px assets (≈1.6x at the size they render, 40KB the pair) and
+ * not the desktop ones: these sit at half opacity behind a card, so a full 2x
+ * raster buys nothing visible, and the media query means a phone fetches these
+ * INSTEAD OF the desktop pair, never both.
+ *
+ * Each is masked to nothing at the edge it points away from, so they fade into
+ * the page rather than ending on a hard crop, and both are held well under
+ * full opacity — the card has to win.
+ */
+@media (max-width: 1023px) {
+  .login-art {
+    display: block;
+    position: absolute;
+    z-index: 0;
+    /* Grows with the viewport: near full-bleed on a phone, and wide enough on
+     * a tablet in portrait that neither sits stranded in its corner. */
+    width: clamp(400px, 76vw, 700px);
+    background-repeat: no-repeat;
+    background-size: contain;
+    pointer-events: none;
+  }
+
+  .login-art--left {
+    left: 0;
+    bottom: 0;
+    aspect-ratio: 1155 / 675;
+    background-image: url("/login-art/female-phone.webp");
+    background-position: left bottom;
+    opacity: 0.5;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 45%);
+    mask-image: linear-gradient(to bottom, transparent 0%, #000 45%);
+  }
+
+  /* Slightly quieter than her: his crop is a much closer one, so the same
+   * opacity puts noticeably more ink on the page. */
+  .login-art--right {
+    right: 0;
+    top: 0;
+    aspect-ratio: 1169 / 681;
+    background-image: url("/login-art/male-phone.webp");
+    background-position: right top;
+    opacity: 0.42;
+    -webkit-mask-image: linear-gradient(to top, transparent 0%, #000 45%);
+    mask-image: linear-gradient(to top, transparent 0%, #000 45%);
+  }
+}
+
 /* --- The card, in liquid glass -------------------------------------------
  * Apple's material is five optical layers: translucency, a blurred and
  * saturated backdrop, refraction at the rim where the glass is thickest, a
