@@ -18,6 +18,16 @@ export default async function LoginPage({
       <div className="login-art login-art--right" aria-hidden="true" />
 
       <form action={login} className="login-card">
+        {/* Inline style, not CSS: a url(#id) in an external stylesheet resolves
+            against the stylesheet, not the page. See .glass-refraction. */}
+        <span
+          className="glass-refraction"
+          aria-hidden="true"
+          style={{
+            backdropFilter: "url(#login-glass-refraction)",
+            WebkitBackdropFilter: "url(#login-glass-refraction)",
+          }}
+        />
         {/* eslint-disable-next-line @next/next/no-img-element -- next/image's
             optimizer self-fetch fails in this preview environment. */}
         <img

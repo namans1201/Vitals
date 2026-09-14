@@ -215,17 +215,16 @@ h4 {
   background:
     linear-gradient(
       157deg,
-      rgba(255, 255, 255, 0.32) 0%,
-      rgba(255, 255, 255, 0.05) 38%,
-      rgba(255, 255, 255, 0.13) 100%
+      rgba(255, 255, 255, 0.34) 0%,
+      rgba(255, 255, 255, 0.06) 38%,
+      rgba(255, 255, 255, 0.14) 100%
     ),
-    rgba(142, 142, 148, 0.12);
-  backdrop-filter: blur(14px) saturate(190%) brightness(1.05);
-  -webkit-backdrop-filter: blur(14px) saturate(190%) brightness(1.05);
+    rgba(142, 142, 148, 0.2);
+  backdrop-filter: blur(18px) saturate(195%) brightness(1.04);
   /* Kept as a real border, not folded into the inset stack below: `main`'s top
    * padding is sized against this bar's measured height, and dropping the
    * border would silently shift every page up by 2px. */
-  border: 1px solid rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.62);
   box-shadow:
     /* light catching the top-left lip */
     inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.85),
@@ -258,13 +257,12 @@ h4 {
   background:
     linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.26) 0%,
-      rgba(255, 255, 255, 0.04) 60%,
-      rgba(255, 255, 255, 0.1) 100%
+      rgba(255, 255, 255, 0.28) 0%,
+      rgba(255, 255, 255, 0.05) 60%,
+      rgba(255, 255, 255, 0.11) 100%
     ),
-    rgba(142, 142, 148, 0.11);
-  backdrop-filter: blur(14px) saturate(190%) brightness(1.05);
-  -webkit-backdrop-filter: blur(14px) saturate(190%) brightness(1.05);
+    rgba(142, 142, 148, 0.18);
+  backdrop-filter: blur(18px) saturate(195%) brightness(1.04);
   /* No floating rim on a flush bar - just the inner lip where it meets the
    * page, so the edge still catches light. */
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
@@ -283,15 +281,29 @@ h4 {
  * whichever rule is later in the file wins for a given selector - this was
  * originally placed between them and silently lost to the plain
  * .glass-flush rule that followed it, leaving mobile with no ripple. */
-@supports (backdrop-filter: url(#nav-glass-refraction)) {
-  .glass,
-  .glass-flush {
-    /* Blur drops when the refraction is available, for the same reason it does
-     * on the login card: displacement can only bend structure that survived
-     * the blur, and an over-blurred backdrop leaves nothing to lens. */
-    backdrop-filter: blur(10px) saturate(190%) brightness(1.05) url(#nav-glass-refraction);
-    -webkit-backdrop-filter: blur(10px) saturate(190%) brightness(1.05) url(#nav-glass-refraction);
-  }
+/* Rim refraction, as its own layer.
+ *
+ * It CANNOT be part of the blur declaration above, and that is a production
+ * bug rather than a style preference. A `url(#id)` in CSS resolves against the
+ * stylesheet's own URL, not the page: in dev Next serves CSS inline so it
+ * finds the filter, but in a real build the CSS is an external file and the
+ * fragment resolves to `/_next/static/css/<hash>.css#id`, which matches
+ * nothing. The whole `backdrop-filter` then fails and takes the blur with it -
+ * every glass surface rendered flat and transparent in production while
+ * looking correct on localhost. Confirmed against `next build`: computed
+ * backdrop-filter was literally `none`.
+ *
+ * So the reference is set as an inline style on this overlay instead, where it
+ * resolves against the document. Two things fall out of that, both wanted: the
+ * base blur lives in CSS and can never be dropped by a failed reference, and
+ * on an engine that ignores SVG filters in backdrop-filter (Safari accepts the
+ * declaration but does not render it) only the refraction is lost. */
+.glass-refraction {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
 }
 
 /*
@@ -527,8 +539,9 @@ h4 {
  * backdrop-filter's functions displaces a pixel, so blur alone gives frosted
  * glass, not a lens. Real lensing needs an SVG feDisplacementMap referenced
  * as `backdrop-filter: url(#id)`, which is Chromium-only and off-spec. It is
- * layered on below under @supports, so every other engine keeps the frosted
- * version rather than losing the card.
+ * applied on a separate overlay element instead of here - see .glass-refraction
+ * for why it cannot share this declaration - so an engine that ignores it
+ * loses only the lensing, never the blur.
  *
  * Unlike .glass above this uses a translucent WHITE rather than a mid-grey.
  * That rule's reasoning holds for the app's flat near-white pages, but here
@@ -544,29 +557,13 @@ h4 {
   text-align: center;
   border-radius: 26px;
   background: rgba(255, 255, 255, 0.44);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(14px) saturate(180%);
   box-shadow:
     /* glass thickness - an inner glow just inside the rim */
     inset 0 0 24px rgba(255, 255, 255, 0.45),
     /* the pane sitting off the page */
     0 1px 2px rgba(17, 17, 17, 0.04),
     0 20px 52px rgba(17, 17, 17, 0.14);
-}
-
-/* The fifth layer, where the engine has it: rim refraction.
- *
- * Blur drops from 20px to 11px here, and that is the whole trick rather than a
- * detail. Refraction can only bend structure that survived the blur - at 20px
- * the backdrop is already a flat wash and the displacement map has nothing
- * left to act on, so the lensing is invisible. Verified against a striped
- * test backdrop: at 20px the stripes vanish entirely, at ~11px they stay
- * legible enough to visibly compress as they approach the rim. */
-@supports (backdrop-filter: url(#login-glass-refraction)) {
-  .login-card {
-    backdrop-filter: blur(11px) saturate(180%) url(#login-glass-refraction);
-    -webkit-backdrop-filter: blur(11px) saturate(180%) url(#login-glass-refraction);
-  }
 }
 
 /* Specular sheen: a directional light catch falling across the top-left and
@@ -615,8 +612,9 @@ h4 {
   mask-composite: exclude;
 }
 
-/* Keep the form itself above both decorative layers. */
-.login-card > * {
+/* Keep the form itself above every decorative layer (the refraction overlay
+ * is one of those, so it must not be caught by this). */
+.login-card > :not(.glass-refraction) {
   position: relative;
   z-index: 1;
 }
@@ -673,7 +671,6 @@ h4 {
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.22);
   backdrop-filter: blur(6px) saturate(160%) brightness(1.04);
-  -webkit-backdrop-filter: blur(6px) saturate(160%) brightness(1.04);
   padding: 0 13px;
   color: var(--ink);
   outline: none;

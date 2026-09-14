@@ -94,6 +94,14 @@ export function AppNav() {
         data-appnav="top"
         className="glass fixed inset-x-4 top-4 z-20 mx-auto hidden max-w-5xl items-center justify-between gap-4 rounded-2xl px-4 py-2.5 sm:flex"
       >
+        <span
+          className="glass-refraction"
+          aria-hidden="true"
+          style={{
+            backdropFilter: "url(#nav-glass-refraction)",
+            WebkitBackdropFilter: "url(#nav-glass-refraction)",
+          }}
+        />
         <Wordmark />
         <nav className="flex items-center gap-1">
           {NAV_ITEMS.map(({ href, label, Icon }) => {
@@ -132,6 +140,14 @@ export function AppNav() {
         data-appnav="top"
         className="glass-flush fixed inset-x-0 top-0 z-20 flex items-center justify-between border-b border-line/70 px-4 py-3 sm:hidden"
       >
+        <span
+          className="glass-refraction"
+          aria-hidden="true"
+          style={{
+            backdropFilter: "url(#nav-glass-refraction)",
+            WebkitBackdropFilter: "url(#nav-glass-refraction)",
+          }}
+        />
         <Wordmark />
         <form action={logout}>
           <button
@@ -149,6 +165,14 @@ export function AppNav() {
         className="glass-flush fixed inset-x-0 bottom-0 z-20 flex border-t border-line/70 sm:hidden"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
+        <span
+          className="glass-refraction"
+          aria-hidden="true"
+          style={{
+            backdropFilter: "url(#nav-glass-refraction)",
+            WebkitBackdropFilter: "url(#nav-glass-refraction)",
+          }}
+        />
         {NAV_ITEMS.map(({ href, label, Icon }) => {
           const active = pathname === href;
           return (
