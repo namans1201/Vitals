@@ -1,11 +1,11 @@
 /**
- * Seed data — BUILD_SPEC.md §10.
+ * Seed data - BUILD_SPEC.md §10.
  *
  * Sources: 01-plan/02-full-programme.md (exercise tables, nutrition plan),
  * 01-plan/03-exercise-rationale.md (the "why" behind each swap).
  *
  * Session templates (upper_a/lower_a/upper_b/lower_b/full_body) live in
- * src/domain/sessionTemplates.ts as a static constant, not as seeded rows —
+ * src/domain/sessionTemplates.ts as a static constant, not as seeded rows -
  * the §4 schema has no model for a reusable, date-less template, and §5.8
  * Settings never asks for session templates to be editable in the UI.
  */
@@ -48,7 +48,7 @@ const EXERCISES: ExerciseSeed[] = [
     defaultRepsMax: 12,
     cues: "Palms toward you. Band-assist or negatives if needed.",
     rationale:
-      "Best biceps + back builder you own — the palms-in grip adds biceps loading a pull-up doesn't.",
+      "Best biceps + back builder you own - the palms-in grip adds biceps loading a pull-up doesn't.",
   },
   {
     name: "Deficit push-up",
@@ -59,7 +59,7 @@ const EXERCISES: ExerciseSeed[] = [
     defaultRepsMax: 15,
     cues: "Hands on two thick books/blocks so your chest drops below hand level.",
     rationale:
-      "A flat push-up (or floor press) stops the elbow at the floor, cutting the stretch out of the movement. The deficit restores it — long muscle length is where the stimulus lives.",
+      "A flat push-up (or floor press) stops the elbow at the floor, cutting the stretch out of the movement. The deficit restores it - long muscle length is where the stimulus lives.",
   },
   {
     name: "Diamond push-up",
@@ -68,7 +68,7 @@ const EXERCISES: ExerciseSeed[] = [
     defaultSets: 3,
     defaultRepsMin: 10,
     defaultRepsMax: 15,
-    cues: "Different hand angle from deficit push-up on purpose — more triceps bias.",
+    cues: "Different hand angle from deficit push-up on purpose - more triceps bias.",
     rationale:
       "Rotates the pressing angle so twelve weeks don't groove a single movement pattern.",
   },
@@ -82,7 +82,7 @@ const EXERCISES: ExerciseSeed[] = [
     cues:
       "Hips high, head between hands, lower the crown of your head toward the floor. Ladder: pike → feet on a chair → deficit pike → handstand push-up negatives.",
     rationale:
-      "Scales bodyweight onto the shoulders with a clear progression ladder — the way past a 10 kg overhead-press ceiling, for free.",
+      "Scales bodyweight onto the shoulders with a clear progression ladder - the way past a 10 kg overhead-press ceiling, for free.",
   },
   {
     name: "DB floor press",
@@ -104,7 +104,7 @@ const EXERCISES: ExerciseSeed[] = [
     cues:
       "Band behind your back at chest height, arms wide and slightly bent, bring your hands together in front.",
     rationale:
-      "Every press trains the chest with a bent elbow; only a fly trains adduction — bringing the arm across the body — which is the pec's actual primary job.",
+      "Every press trains the chest with a bent elbow; only a fly trains adduction - bringing the arm across the body - which is the pec's actual primary job.",
   },
   {
     name: "Inverted row",
@@ -116,7 +116,7 @@ const EXERCISES: ExerciseSeed[] = [
     cues:
       "Lie under a sturdy table or low bar, pull your chest to it, body straight. Easier: bend your knees. Harder: elevate your feet.",
     rationale:
-      "Vertical pulls and horizontal rows train different parts of the back — this was the under-trained half of that pair.",
+      "Vertical pulls and horizontal rows train different parts of the back - this was the under-trained half of that pair.",
   },
   {
     name: "Single-arm DB row",
@@ -150,7 +150,7 @@ const EXERCISES: ExerciseSeed[] = [
     cues:
       "Light, strict, lead with elbows. On the last set, after full reps, keep going with bottom-half-only partials to failure.",
     rationale:
-      "Side delts create shoulder width — the thing that actually makes arms look bigger — and were the most under-trained muscle in the original plan. The lengthened-partial finisher squeezes more growth out of a dumbbell you'll outgrow fast.",
+      "Side delts create shoulder width - the thing that actually makes arms look bigger - and were the most under-trained muscle in the original plan. The lengthened-partial finisher squeezes more growth out of a dumbbell you'll outgrow fast.",
   },
   {
     name: "Band pull-apart",
@@ -182,7 +182,7 @@ const EXERCISES: ExerciseSeed[] = [
     defaultRepsMax: 15,
     cues: "Keep going overhead, not down.",
     rationale:
-      "The overhead position stretches the triceps long head — the biggest of the three heads, and the one pushdowns and kickbacks barely reach.",
+      "The overhead position stretches the triceps long head - the biggest of the three heads, and the one pushdowns and kickbacks barely reach.",
   },
   {
     name: "Bench dip",
@@ -203,7 +203,7 @@ const EXERCISES: ExerciseSeed[] = [
     defaultRepsMax: 15,
     cues: "Sit leaning back, or let your arm hang behind your torso. Last set to actual failure.",
     rationale:
-      "A standing curl gives the biceps almost no stretch at the bottom; this puts the arm in a lengthened position instead — same dumbbell, more stimulus.",
+      "A standing curl gives the biceps almost no stretch at the bottom; this puts the arm in a lengthened position instead - same dumbbell, more stimulus.",
   },
   {
     name: "Hammer curl",
@@ -224,7 +224,7 @@ const EXERCISES: ExerciseSeed[] = [
     defaultRepsMax: 15,
     cues: "One DB at chest, 3-second down, 1-second pause at the bottom, drive up.",
     rationale:
-      "Once 10 kg is easy, add a loaded backpack or move to front-foot-elevated split squats — the load ceiling, not the movement, is the limit.",
+      "Once 10 kg is easy, add a loaded backpack or move to front-foot-elevated split squats - the load ceiling, not the movement, is the limit.",
   },
   {
     name: "Bulgarian split squat",
@@ -246,7 +246,7 @@ const EXERCISES: ExerciseSeed[] = [
     defaultSets: 3,
     defaultRepsMin: 10,
     defaultRepsMax: 12,
-    cues: "Step back, not forward — easier on the knees.",
+    cues: "Step back, not forward - easier on the knees.",
     rationale: "A knee-friendlier unilateral quad exercise to pair with the Bulgarian split squat.",
   },
   {
@@ -257,7 +257,7 @@ const EXERCISES: ExerciseSeed[] = [
     defaultRepsMin: 12,
     defaultRepsMax: 15,
     cues: "Soft knees, push hips back, 3-second lowering, feel the hamstring stretch. Flat back throughout.",
-    rationale: "Trains the hamstring at the hip — a different job from the knee-flexion work below.",
+    rationale: "Trains the hamstring at the hip - a different job from the knee-flexion work below.",
   },
   {
     name: "Single-leg RDL",
@@ -267,7 +267,7 @@ const EXERCISES: ExerciseSeed[] = [
     defaultSets: 3,
     defaultRepsMin: 10,
     defaultRepsMax: 12,
-    cues: "Slow — balance is part of the exercise.",
+    cues: "Slow - balance is part of the exercise.",
     rationale: "Unilateral hip-hinge pattern that carries over directly to single-leg running mechanics.",
   },
   {
@@ -279,7 +279,7 @@ const EXERCISES: ExerciseSeed[] = [
     defaultRepsMax: 12,
     cues: "Kneel, anchor your heels under something heavy, lower your torso forward as slowly as you can, catch yourself with your hands.",
     rationale:
-      "RDLs train the hamstring at the hip; this trains it at the knee — a separate muscle head, and running 3x/week makes hamstring strength a real injury-protection concern.",
+      "RDLs train the hamstring at the hip; this trains it at the knee - a separate muscle head, and running 3x/week makes hamstring strength a real injury-protection concern.",
   },
   {
     name: "Band leg curl",
@@ -290,7 +290,7 @@ const EXERCISES: ExerciseSeed[] = [
     defaultRepsMax: 15,
     cues: "Lie face down, band looped around one ankle and anchored behind you, curl your heel to your bum.",
     rationale:
-      "Bands work well here — the hard part of a leg curl is at the top, exactly where a band is strongest.",
+      "Bands work well here - the hard part of a leg curl is at the top, exactly where a band is strongest.",
   },
   {
     name: "DB step-up",
@@ -334,7 +334,7 @@ const EXERCISES: ExerciseSeed[] = [
     defaultRepsMin: 15,
     defaultRepsMax: 20,
     cues: "DB on knees, 2-second pause at the bottom stretch.",
-    rationale: "Bent-knee (seated) hits the soleus — the other calf muscle standing raises miss.",
+    rationale: "Bent-knee (seated) hits the soleus - the other calf muscle standing raises miss.",
   },
   {
     name: "Hanging knee raise",
@@ -344,7 +344,7 @@ const EXERCISES: ExerciseSeed[] = [
     defaultRepsMin: 8,
     defaultRepsMax: 15,
     cues:
-      "Progression: knee raise → straight-leg raise → toes-to-bar. Tuck your pelvis under (posterior tilt) as you lift — that's what makes it abs rather than hip flexors.",
+      "Progression: knee raise → straight-leg raise → toes-to-bar. Tuck your pelvis under (posterior tilt) as you lift - that's what makes it abs rather than hip flexors.",
     rationale: "A spine-neutral ab exercise with a clear multi-month progression ladder.",
   },
   {
@@ -356,7 +356,7 @@ const EXERCISES: ExerciseSeed[] = [
     defaultRepsMax: 30,
     cues: "Lower back pressed flat into the floor. (Seconds, not reps.)",
     rationale:
-      "Anti-extension core work — the muscle's real job is resisting movement, not repeatedly flexing the spine.",
+      "Anti-extension core work - the muscle's real job is resisting movement, not repeatedly flexing the spine.",
   },
   {
     name: "Dead bug",
@@ -378,7 +378,7 @@ const EXERCISES: ExerciseSeed[] = [
     defaultRepsMin: 30,
     defaultRepsMax: 30,
     cues: "Per side. (Seconds, not reps.)",
-    rationale: "Anti-lateral-flexion — the third pillar of a complete core, alongside anti-extension and anti-rotation.",
+    rationale: "Anti-lateral-flexion - the third pillar of a complete core, alongside anti-extension and anti-rotation.",
   },
   {
     name: "Long-lever plank",
@@ -388,7 +388,7 @@ const EXERCISES: ExerciseSeed[] = [
     defaultRepsMin: 30,
     defaultRepsMax: 45,
     cues:
-      "Walk your elbows forward past your shoulders. Replaces the standard plank once a normal plank is easy — add leverage, not time.",
+      "Walk your elbows forward past your shoulders. Replaces the standard plank once a normal plank is easy - add leverage, not time.",
     rationale: "Once a 45-second plank is easy, more time has sharply diminishing returns; more leverage doesn't.",
   },
   {
@@ -402,7 +402,7 @@ const EXERCISES: ExerciseSeed[] = [
     cues:
       "Anchor the band at chest height to your side, hold it at your sternum, press it straight out and resist the twist. Per side.",
     rationale:
-      "The missing third pillar of core training — anti-rotation. Bands suit it perfectly: the hardest point is arms-extended, exactly where a band is strongest.",
+      "The missing third pillar of core training - anti-rotation. Bands suit it perfectly: the hardest point is arms-extended, exactly where a band is strongest.",
   },
   {
     name: "Suitcase carry",
@@ -413,8 +413,8 @@ const EXERCISES: ExerciseSeed[] = [
     defaultRepsMin: 30,
     defaultRepsMax: 40,
     cues:
-      "One dumbbell, one hand, walk 30-40 m. Your torso wants to lean — the job is to stay upright. (Metres, not reps.)",
-    rationale: "Anti-lateral-flexion under real load, plus grip and traps for free — better ROI than shrugs.",
+      "One dumbbell, one hand, walk 30-40 m. Your torso wants to lean - the job is to stay upright. (Metres, not reps.)",
+    rationale: "Anti-lateral-flexion under real load, plus grip and traps for free - better ROI than shrugs.",
   },
   {
     name: "Dead hang",
@@ -551,7 +551,7 @@ const CHECKLIST_ITEMS: { key: string; label: string; priority: boolean }[] = [
 const SUPPLEMENTS = [
   {
     name: "Vitamin B12 (methylcobalamin)",
-    dose: "500–1,500 mcg",
+    dose: "500-1,500 mcg",
     timing: "Morning, with food",
     status: "active",
     note: null,
@@ -561,18 +561,18 @@ const SUPPLEMENTS = [
     dose: "5 g",
     timing: "Any time, daily incl. rest days",
     status: "active",
-    note: "Saturates over weeks — consistency matters more than timing.",
+    note: "Saturates over weeks - consistency matters more than timing.",
   },
   {
     name: "Omega-3",
-    dose: "1 tbsp ground flaxseed + 5 walnuts, or algal EPA/DHA 250–500 mg",
+    dose: "1 tbsp ground flaxseed + 5 walnuts, or algal EPA/DHA 250-500 mg",
     timing: "With a meal",
     status: "active",
     note: null,
   },
   {
     name: "Vitamin D3",
-    dose: "On hold — dose depends on retest",
+    dose: "On hold - dose depends on retest",
     timing: "With a fatty meal, once restarted",
     status: "on_hold",
     note: "Do not restart until 25-OH vitamin D and calcium are retested.",
@@ -636,13 +636,13 @@ const BLOOD_MARKERS: {
     refHigh: 400,
     flag: null,
     note:
-      "Not measured on the Feb 2026 panel — the highest-value missing test. Low iron stores would directly cap running performance, and red cells were already small (MCV 82.8, MCH 26.6). Ask for this alongside 25-OH vitamin D, calcium, B12, and homocysteine on the next blood draw.",
+      "Not measured on the Feb 2026 panel - the highest-value missing test. Low iron stores would directly cap running performance, and red cells were already small (MCV 82.8, MCH 26.6). Ask for this alongside 25-OH vitamin D, calcium, B12, and homocysteine on the next blood draw.",
   },
 ];
 
 const BLOOD_TEST_DATE = new Date("2026-02-06T00:00:00.000Z");
 
-// August (dairy, no eggs) and September (eggs, 6–8 PM window) plans —
+// August (dairy, no eggs) and September (eggs, 6-8 PM window) plans -
 // 01-plan/02-full-programme.md §5.
 const MEAL_PRESETS: {
   time: string;
@@ -747,7 +747,7 @@ const MEAL_PRESETS: {
   {
     time: "18:15",
     name: "Pre-workout (eggs)",
-    description: "2 boiled eggs + 1 apple — replaces the roasted chana",
+    description: "2 boiled eggs + 1 apple - replaces the roasted chana",
     proteinG: 13,
     caloriesKcal: 190,
     fatG: 7,
@@ -758,7 +758,7 @@ const MEAL_PRESETS: {
   {
     time: "20:00",
     name: "Post-workout (eggs)",
-    description: "3 whole eggs + 2 whites, bhurji or omelette, ≤1 tsp oil — replaces the whey shake",
+    description: "3 whole eggs + 2 whites, bhurji or omelette, ≤1 tsp oil - replaces the whey shake",
     proteinG: 26,
     caloriesKcal: 260,
     fatG: 16,
@@ -769,7 +769,7 @@ const MEAL_PRESETS: {
   {
     time: "21:30",
     name: "Dinner (lighter)",
-    description: "Rajma/chole + rice + sabzi + salad + 100 g curd — drop the paneer tikka",
+    description: "Rajma/chole + rice + sabzi + salad + 100 g curd - drop the paneer tikka",
     proteinG: 25,
     caloriesKcal: 550,
     fatG: 12,
@@ -779,7 +779,7 @@ const MEAL_PRESETS: {
   },
 ];
 
-// The fridge table from 01-plan/02-full-programme.md §5 — tap to add, set a
+// The fridge table from 01-plan/02-full-programme.md §5 - tap to add, set a
 // quantity, protein/calories/fat/carbs scale from `baseAmount` automatically.
 // unitType "gram" scales continuously (any amount typed); "piece" scales in
 // discrete units (scoops, katoris, medium fruit, eggs) - unitLabel is just
@@ -806,7 +806,7 @@ const FOOD_ITEMS: {
   { name: "Curd (dahi), toned", servingLabel: "150 g", unitType: "gram", unitLabel: "g", baseAmount: 150, proteinG: 5, caloriesKcal: 90, fatG: 4.5, carbG: 7 },
   { name: "Milk, toned", servingLabel: "250 ml", unitType: "gram", unitLabel: "ml", baseAmount: 250, proteinG: 8, caloriesKcal: 145, fatG: 7, carbG: 12 },
   { name: "Rajma / chole (cooked)", servingLabel: "1 katori (150 g)", unitType: "piece", unitLabel: "katori", baseAmount: 1, proteinG: 8.5, caloriesKcal: 130, fatG: 0.5, carbG: 22 },
-  { name: "Dal — toor / moong / chana (cooked)", servingLabel: "1 katori (150 g)", unitType: "piece", unitLabel: "katori", baseAmount: 1, proteinG: 7, caloriesKcal: 110, fatG: 0.4, carbG: 19 },
+  { name: "Dal - toor / moong / chana (cooked)", servingLabel: "1 katori (150 g)", unitType: "piece", unitLabel: "katori", baseAmount: 1, proteinG: 7, caloriesKcal: 110, fatG: 0.4, carbG: 19 },
   { name: "Roasted chana", servingLabel: "30 g", unitType: "gram", unitLabel: "g", baseAmount: 30, proteinG: 6, caloriesKcal: 120, fatG: 2, carbG: 19 },
   { name: "Besan (gram flour)", servingLabel: "60 g", unitType: "gram", unitLabel: "g", baseAmount: 60, proteinG: 13, caloriesKcal: 215, fatG: 3.6, carbG: 34 },
   { name: "Peanuts", servingLabel: "30 g", unitType: "gram", unitLabel: "g", baseAmount: 30, proteinG: 8, caloriesKcal: 170, fatG: 13, carbG: 5 },
@@ -858,7 +858,7 @@ const FOOD_ITEMS: {
 ];
 
 async function main() {
-  // Profile — DOB is a placeholder (turns 24 on 1 Feb 2026); correct the
+  // Profile - DOB is a placeholder (turns 24 on 1 Feb 2026); correct the
   // exact date in Settings once that screen exists.
   // These targets come from the plan, so re-seeding resets them to the plan's
   // values rather than preserving ad-hoc edits.
