@@ -1,5 +1,6 @@
 import { ToastProvider } from "@/components/Toast";
 import { AppNav } from "@/components/AppNav";
+import { ScrollTopOnNavigate } from "@/components/ScrollTopOnNavigate";
 import { RefreshOnFocus } from "@/components/RefreshOnFocus";
 
 export default function AppLayout({
@@ -9,6 +10,7 @@ export default function AppLayout({
     <ToastProvider>
       <div className="flex min-h-full flex-1 flex-col">
         <AppNav />
+        <ScrollTopOnNavigate />
         {/* Re-reads server data when you return to the tab, so a phone left
             open overnight is not still showing yesterday's state. */}
         <RefreshOnFocus />
