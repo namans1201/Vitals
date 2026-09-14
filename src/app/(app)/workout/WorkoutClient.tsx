@@ -4,9 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DateNav } from "@/components/DateNav";
 import { useToast } from "@/components/Toast";
-import { createWorkout, addWorkoutSet, patchWorkoutSet, deleteWorkout } from "@/lib/api-client";
+import {
+  createWorkout,
+  addWorkoutSet,
+  patchWorkoutSet,
+  deleteWorkout,
+  replaceWorkoutExercise,
+} from "@/lib/api-client";
 import { SESSION_LABELS, type SessionType } from "@/domain/sessionTemplates";
-import { IconInfo, IconPlus, IconRun } from "@/components/icons";
+import { IconInfo, IconPlus, IconRun, IconRest } from "@/components/icons";
 import { useEscapeKey } from "@/lib/useEscapeKey";
 import { RestTimer } from "@/components/RestTimer";
 import { playCountdownBeep, playPersonalRecord, playRestOver, vibrate } from "@/lib/sounds";
@@ -234,7 +240,14 @@ export function WorkoutClient({
             />
           )}
           {exerciseGroups.map((group) => (
-            <ExerciseCard key={group.exercise.id} workoutId={workout.id} group={group} onSetCompleted={startRest} />
+            <ExerciseCard
+              key={group.exercise.id}
+              workoutId={workout.id}
+              group={group}
+              allExercises={allExercises}
+              existing={exerciseGroups}
+              onSetCompleted={startRest}
+            />
           ))}
           <AddExercise workoutId={workout.id} allExercises={allExercises} existing={exerciseGroups} />
         </>
@@ -320,15 +333,20 @@ type PRType = "reps" | "weight" | "volume";
 function ExerciseCard({
   workoutId,
   group,
+  allExercises,
+  existing,
   onSetCompleted,
 }: {
   workoutId: number;
   group: ExerciseGroup;
+  allExercises: Exercise[];
+  existing: ExerciseGroup[];
   onSetCompleted: () => void;
 }) {
   const { exercise, sets, lastTime, bestEver, progression: prog } = group;
   const toast = useToast();
   const [formGuideOpen, setFormGuideOpen] = useState(false);
+  const [replaceOpen, setReplaceOpen] = useState(false);
   // Reps are lifted here (not left inside each set row) purely so a PR can
   // be checked against the exercise's whole current session - RIR and the
   // completed toggle don't affect any PR metric, so those stay local to
@@ -408,6 +426,15 @@ function ExerciseCard({
           </span>
           <button
             type="button"
+            onClick={() => setReplaceOpen(true)}
+            className="flex h-6 w-6 items-center justify-center rounded-full text-faint transition-colors hover:bg-panel-2 hover:text-dim"
+            aria-label={`Replace ${exercise.name}`}
+            title="Replace this exercise"
+          >
+            <IconRest size={15} />
+          </button>
+          <button
+            type="button"
             onClick={() => setFormGuideOpen(true)}
             className="flex h-6 w-6 items-center justify-center rounded-full text-faint transition-colors hover:bg-panel-2 hover:text-dim"
             aria-label="Form guide"
@@ -453,6 +480,16 @@ function ExerciseCard({
           />
         ))}
       </div>
+
+      {replaceOpen && (
+        <ReplaceExercise
+          workoutId={workoutId}
+          group={group}
+          allExercises={allExercises}
+          existing={existing}
+          onClose={() => setReplaceOpen(false)}
+        />
+      )}
 
       {formGuideOpen && (
         <ExerciseFormGuideModal exerciseName={exercise.name} onClose={() => setFormGuideOpen(false)} />
@@ -578,6 +615,131 @@ function LabeledField({
         className="h-11 w-14 rounded-xl border border-line bg-panel-2 px-1 text-center text-sm text-ink outline-none focus:border-accent"
       />
     </label>
+  );
+}
+
+/**
+ * Swap this exercise for another from the library.
+ *
+ * Deliberately warns before it clears anything: the swap resets every logged
+ * value on these sets, because those reps belong to the exercise being
+ * replaced and last-time/best-ever/PR detection all read straight off these
+ * rows. Silently rewriting them under a new name would corrupt that history.
+ * With nothing logged there is nothing to lose, so no warning is shown.
+ *
+ * The set count carries over rather than resetting to the new exercise's
+ * default - you planned this session's volume, and swapping one movement for
+ * another shouldn't quietly change how much work the day holds.
+ */
+function ReplaceExercise({
+  workoutId,
+  group,
+  allExercises,
+  existing,
+  onClose,
+}: {
+  workoutId: number;
+  group: ExerciseGroup;
+  allExercises: Exercise[];
+  existing: ExerciseGroup[];
+  onClose: () => void;
+}) {
+  const router = useRouter();
+  const toast = useToast();
+  const [selectedId, setSelectedId] = useState<string>("");
+  const [busy, setBusy] = useState(false);
+  useEscapeKey(onClose);
+
+  // Everything already in the session is hidden, this card included - the API
+  // rejects both cases anyway, so offering them would only produce an error.
+  const takenIds = new Set(existing.map((g) => g.exercise.id));
+  const options = allExercises.filter((e) => !takenIds.has(e.id));
+
+  // Same test as the session-level remove warning (and sessionReconcile's
+  // hasLoggedWork): a set counts as work if it was ticked OR has any number in
+  // it, not just if it was ticked.
+  const loggedCount = group.sets.filter(
+    (s) => s.completed || s.reps !== null || s.weightKg !== null || s.rir !== null,
+  ).length;
+
+  async function replace() {
+    if (!selectedId) return;
+    setBusy(true);
+    try {
+      await replaceWorkoutExercise(workoutId, group.exercise.id, {
+        toExerciseId: Number(selectedId),
+      });
+      onClose();
+      toast(
+        `Swapped in ${allExercises.find((e) => e.id === Number(selectedId))?.name ?? "exercise"}`,
+      );
+      router.refresh();
+    } catch {
+      toast("Couldn't replace that exercise - try again");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-30 flex items-center justify-center bg-ink/40 px-4 overlay-in"
+      onClick={onClose}
+      role="presentation"
+    >
+      <div
+        className="card modal-in w-full max-w-xs p-4"
+        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Replace ${group.exercise.name}`}
+      >
+        <h2 className="font-heading text-sm font-bold text-ink">Replace {group.exercise.name}</h2>
+        <p className="mt-2 text-xs text-dim">
+          Keeps {group.sets.length} {group.sets.length === 1 ? "set" : "sets"} and its place in the
+          session.
+        </p>
+
+        <select
+          value={selectedId}
+          onChange={(e) => setSelectedId(e.target.value)}
+          className="mt-3 h-11 w-full rounded-xl border border-line bg-panel-2 px-3 text-sm text-ink outline-none focus:border-accent"
+        >
+          <option value="">Choose from the library...</option>
+          {options.map((e) => (
+            <option key={e.id} value={e.id}>
+              {e.name}
+            </option>
+          ))}
+        </select>
+
+        {loggedCount > 0 && (
+          <p className="mt-3 rounded-lg bg-bad/10 px-3 py-2 text-xs text-bad">
+            {loggedCount} logged {loggedCount === 1 ? "set" : "sets"} on this exercise will be
+            cleared. This can&apos;t be undone.
+          </p>
+        )}
+
+        <div className="mt-4 flex gap-2">
+          <button
+            onClick={onClose}
+            disabled={busy}
+            className="h-10 flex-1 rounded-full border border-line text-sm font-medium text-dim disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={replace}
+            disabled={!selectedId || busy}
+            className={`h-10 flex-1 rounded-full text-sm font-medium text-white disabled:opacity-50 ${
+              loggedCount > 0 ? "bg-bad" : "bg-accent"
+            }`}
+          >
+            Replace
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 

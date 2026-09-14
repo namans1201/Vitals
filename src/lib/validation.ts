@@ -48,6 +48,11 @@ export const addWorkoutSetSchema = z.object({
   targetSets: z.number().int().min(1).max(10).default(3),
 });
 
+/** Swap one exercise in a session for another from the library. */
+export const replaceWorkoutExerciseSchema = z.object({
+  toExerciseId: z.number().int(),
+});
+
 export const patchWorkoutSetSchema = z.object({
   reps: z.number().int().min(0).max(500).nullable().optional(),
   weightKg: z.number().min(0).max(500).nullable().optional(),

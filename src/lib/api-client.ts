@@ -39,6 +39,19 @@ export function addWorkoutSet(workoutId: number, body: { exerciseId: number; tar
   return request(`/api/workouts/${workoutId}/sets`, { method: "POST", body: JSON.stringify(body) });
 }
 
+/** Swap an exercise in a session for another. Clears the old exercise's
+ * logged sets - see the route for why. */
+export function replaceWorkoutExercise(
+  workoutId: number,
+  fromExerciseId: number,
+  body: { toExerciseId: number },
+) {
+  return request(`/api/workouts/${workoutId}/exercises/${fromExerciseId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
 export function patchWorkoutSet(
   workoutId: number,
   setId: number,
