@@ -534,18 +534,17 @@ const EXERCISES: ExerciseSeed[] = [
 
 const CHECKLIST_ITEMS: { key: string; label: string; priority: boolean }[] = [
   { key: "light", label: "15 min outdoor light within an hour of waking", priority: true },
-  { key: "bed", label: "In bed by 12:30 AM", priority: true },
-  { key: "caffeine", label: "No caffeine after 2 PM", priority: true },
+  { key: "bed", label: "In bed by 1 AM", priority: true },
+  { key: "caffeine", label: "No caffeine after 3 PM", priority: true },
   { key: "protein", label: "Hit protein target", priority: false },
   { key: "water", label: "Water target", priority: false },
   { key: "creatine", label: "Creatine", priority: false },
   { key: "b12", label: "B12", priority: false },
   { key: "omega3", label: "Omega-3", priority: false },
-  { key: "finax_am", label: "Finax — 11 AM", priority: false },
-  { key: "adgain", label: "Adgain Plus — 2:15 PM", priority: false },
-  { key: "finax_pm", label: "Finax — 10 PM", priority: false },
+  { key: "finax_am", label: "Finax - 11 AM", priority: false },
+  { key: "adgain", label: "Adgain Plus - 2:15 PM", priority: false },
+  { key: "finax_pm", label: "Finax - 10 PM", priority: false },
   { key: "nosugar", label: "No added sugar", priority: false },
-  { key: "nosmoke", label: "No cigarettes", priority: false },
   { key: "sleep7", label: "7+ hours sleep", priority: false },
 ];
 
@@ -868,7 +867,7 @@ async function main() {
     calorieTargetKcal: 2450,
     waterTargetMl: 4000,
     mealPhase: "sep_eggs",
-    bedtimeTarget: "00:30",
+    bedtimeTarget: "01:00",
   };
   await prisma.profile.upsert({
     where: { id: 1 },
@@ -902,7 +901,18 @@ async function main() {
       create: { ...item, sortOrder: index },
     });
   }
-  console.log(`Seeded ${CHECKLIST_ITEMS.length} checklist items`);
+  // Retire anything no longer in the list. Deactivated rather than deleted:
+  // ChecklistLog rows reference the key, so a delete would either fail on the
+  // foreign key or throw away the history of a habit that was tracked for
+  // months. `active: false` is what the app already filters on.
+  const retired = await prisma.checklistItem.updateMany({
+    where: { key: { notIn: CHECKLIST_ITEMS.map((i) => i.key) }, active: true },
+    data: { active: false },
+  });
+  console.log(
+    `Seeded ${CHECKLIST_ITEMS.length} checklist items` +
+      (retired.count > 0 ? `, retired ${retired.count}` : ""),
+  );
 
   for (const supplement of SUPPLEMENTS) {
     const existing = await prisma.supplement.findFirst({ where: { name: supplement.name } });

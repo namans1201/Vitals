@@ -28,7 +28,7 @@ model Profile {
   // which MealPreset.phase is "current" for quick-add — all | aug_dairy | sep_eggs
   mealPhase         String   @default("sep_eggs")
   // "HH:mm" in Asia/Kolkata — drives the "in bed by …" checklist item
-  bedtimeTarget     String   @default("00:30")
+  bedtimeTarget     String   @default("01:00")
   updatedAt         DateTime @updatedAt
 }
 

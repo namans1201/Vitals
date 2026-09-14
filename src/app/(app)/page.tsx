@@ -34,7 +34,7 @@ export default async function TodayPage() {
       today={today}
       flexChoice={weekPlan.flexChoice}
       weekProblems={weekPlan.problems}
-      bedtimeTarget={formatClock12h(profile?.bedtimeTarget ?? "00:30")}
+      bedtimeTarget={formatClock12h(profile?.bedtimeTarget ?? "01:00")}
       proteinTargetG={proteinTargetG}
       proteinSoFar={proteinSoFar}
       waterTargetMl={profile?.waterTargetMl ?? 3500}
