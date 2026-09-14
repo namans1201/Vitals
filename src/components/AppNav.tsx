@@ -30,20 +30,47 @@ function Wordmark() {
   );
 }
 
-/** The "liquid" in liquid glass: gently warps whatever the backdrop-filter
- * blur samples from behind the glass bars, so it reads as refraction
- * rather than a flat frosted pane. Zero visual footprint of its own
- * (0x0, aria-hidden) - only referenced via `url(#liquid-glass-distortion)`
- * in globals.css's `.glass`/`.glass-flush` rules, and only where
- * `@supports` confirms the engine honours that reference at all. Doesn't
- * touch the bars' own text/icons - backdrop-filter only affects the
- * sampled backdrop, never the element's own children. */
+/** The "liquid" in liquid glass: bends whatever the backdrop-filter blur
+ * samples from behind the bars, so the edges read as refraction rather than a
+ * flat frosted pane.
+ *
+ * This used to be an feTurbulence noise field displacing the whole backdrop
+ * evenly, which is the wrong physics - real glass is thick at the rim and flat
+ * in the middle, so it lenses at the edges and leaves the centre alone. It now
+ * uses a precomputed rim map (see scripts/generate-glass-displacement.mjs, the
+ * same one the login card uses at its own size): red encodes X displacement,
+ * green Y, 128 means hold still.
+ *
+ * The displacement scale is tuned against the shallowest surface that uses it:
+ * the phone bars are only ~60px tall, so the rim band is a small fraction of
+ * their height and a conservative scale reads as no refraction at all. Checked
+ * against a striped backdrop at 10, 18 and 44 - 10 was indistinguishable from
+ * plain blur, 44 visibly warped the bar, 18 shows the rim without distortion.
+ *
+ * Zero visual footprint of its own (0x0, aria-hidden) - only referenced via
+ * `url(#nav-glass-refraction)` in globals.css's `.glass`/`.glass-flush` rules,
+ * and only where `@supports` confirms the engine honours that reference at
+ * all. Doesn't touch the bars' own text/icons - backdrop-filter only affects
+ * the sampled backdrop, never the element's own children. */
 function LiquidGlassFilter() {
   return (
     <svg width="0" height="0" aria-hidden="true" className="absolute">
-      <filter id="liquid-glass-distortion">
-        <feTurbulence type="fractalNoise" baseFrequency="0.008 0.012" numOctaves={2} seed={7} result="noise" />
-        <feDisplacementMap in="SourceGraphic" in2="noise" scale="16" xChannelSelector="R" yChannelSelector="G" />
+      <filter
+        id="nav-glass-refraction"
+        x="0%"
+        y="0%"
+        width="100%"
+        height="100%"
+        colorInterpolationFilters="sRGB"
+      >
+        <feImage href="/login-art/nav-rim.png" preserveAspectRatio="none" result="rim" />
+        <feDisplacementMap
+          in="SourceGraphic"
+          in2="rim"
+          scale="18"
+          xChannelSelector="R"
+          yChannelSelector="G"
+        />
       </filter>
     </svg>
   );

@@ -188,12 +188,14 @@ h4 {
  * rect) comes from whatever border-radius the component sets; this class
  * only supplies the material.
  *
- * The fill is a genuinely mid-grey, not a translucent white — against a
+ * The BASE fill is a genuinely mid-grey, not a translucent white — against a
  * near-white page (this app's whole palette lives in #F4F4F5–#FFFFFF),
  * translucent white composites to something visually identical to the
  * page itself, and the "glass" simply disappears. A grey base still lets
  * real content show through blurred when it scrolls underneath, while
- * staying visibly a distinct floating panel even at rest.
+ * staying visibly a distinct floating panel even at rest. The white only
+ * appears above it, as a directional sheen and an edge glare — spent where
+ * it reads as light on a surface rather than as fill.
  *
  * No `position` here on purpose: this engine only composites
  * `backdrop-filter` on an element that is itself `position: fixed` — not
@@ -206,15 +208,34 @@ h4 {
  * silently break compositing again.
  */
 .glass {
-  background: rgba(142, 142, 148, 0.15);
-  backdrop-filter: blur(16px) saturate(150%);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  /* Two layers: a directional sheen over a grey base. The sheen is what turns
+   * a flat frosted panel into something that looks like it has a surface -
+   * brightest where the light lands at the top-left, falling away by the
+   * middle, with a little bounce back at the far edge. */
+  background:
+    linear-gradient(
+      157deg,
+      rgba(255, 255, 255, 0.32) 0%,
+      rgba(255, 255, 255, 0.05) 38%,
+      rgba(255, 255, 255, 0.13) 100%
+    ),
+    rgba(142, 142, 148, 0.12);
+  backdrop-filter: blur(14px) saturate(190%) brightness(1.05);
+  -webkit-backdrop-filter: blur(14px) saturate(190%) brightness(1.05);
+  /* Kept as a real border, not folded into the inset stack below: `main`'s top
+   * padding is sized against this bar's measured height, and dropping the
+   * border would silently shift every page up by 2px. */
+  border: 1px solid rgba(255, 255, 255, 0.55);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.75),
+    /* light catching the top-left lip */
+    inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.85),
+    /* bounce off the opposite wall */
+    inset -1px -1px 0 rgba(255, 255, 255, 0.32),
+    /* glass thickness */
+    inset 0 0 18px rgba(255, 255, 255, 0.22),
     inset 0 -1px 0 rgba(17, 17, 17, 0.05),
-    0 2px 6px rgba(17, 17, 17, 0.06),
-    0 22px 48px rgba(17, 17, 17, 0.16);
+    0 2px 6px rgba(17, 17, 17, 0.05),
+    0 18px 44px rgba(17, 17, 17, 0.13);
 }
 
 /* The specular sheen along the top — a soft light-catching highlight that
@@ -227,16 +248,26 @@ h4 {
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55) 0%, rgba(255, 255, 255, 0) 55%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.34) 0%, rgba(255, 255, 255, 0) 52%);
 }
 
 /* Flat variant for edges that sit flush against the viewport (the mobile
  * top/bottom bars) — same grey-glass fill and blur, no floating shadow or
  * rim (the component's own border-top/bottom supplies the edge). */
 .glass-flush {
-  background: rgba(142, 142, 148, 0.14);
-  backdrop-filter: blur(16px) saturate(150%);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.26) 0%,
+      rgba(255, 255, 255, 0.04) 60%,
+      rgba(255, 255, 255, 0.1) 100%
+    ),
+    rgba(142, 142, 148, 0.11);
+  backdrop-filter: blur(14px) saturate(190%) brightness(1.05);
+  -webkit-backdrop-filter: blur(14px) saturate(190%) brightness(1.05);
+  /* No floating rim on a flush bar - just the inner lip where it meets the
+   * page, so the edge still catches light. */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 /* Progressive enhancement: the actual "liquid" ripple, layered on top of the
@@ -252,11 +283,14 @@ h4 {
  * whichever rule is later in the file wins for a given selector - this was
  * originally placed between them and silently lost to the plain
  * .glass-flush rule that followed it, leaving mobile with no ripple. */
-@supports (backdrop-filter: url(#liquid-glass-distortion)) {
+@supports (backdrop-filter: url(#nav-glass-refraction)) {
   .glass,
   .glass-flush {
-    backdrop-filter: blur(13px) saturate(150%) url(#liquid-glass-distortion);
-    -webkit-backdrop-filter: blur(13px) saturate(150%) url(#liquid-glass-distortion);
+    /* Blur drops when the refraction is available, for the same reason it does
+     * on the login card: displacement can only bend structure that survived
+     * the blur, and an over-blurred backdrop leaves nothing to lens. */
+    backdrop-filter: blur(10px) saturate(190%) brightness(1.05) url(#nav-glass-refraction);
+    -webkit-backdrop-filter: blur(10px) saturate(190%) brightness(1.05) url(#nav-glass-refraction);
   }
 }
 
